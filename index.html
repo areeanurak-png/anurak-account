@@ -1,0 +1,1794 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Anurak Auto</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box}
+body{font-family:'Noto Sans Thai',sans-serif;background:#F5F5F7;color:#1d1d1f;margin:0}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9000;align-items:center;justify-content:center}
+.modal-overlay.show{display:flex}
+.modal-box{background:#fff;border-radius:16px;max-width:600px;width:95%;max-height:85vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.2);animation:modalIn .25s ease}
+@keyframes modalIn{from{transform:translateY(30px);opacity:0}to{transform:translateY(0);opacity:1}}
+.modal-header{padding:20px 24px;border-bottom:1px solid #e5e7eb;display:flex;align-items:center;justify-content:space-between}
+.modal-header h3{font-size:18px;font-weight:700}
+.modal-close{width:32px;height:32px;border-radius:50%;border:none;background:#f3f4f6;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center}
+.modal-close:hover{background:#e5e7eb}
+.modal-body{padding:24px}
+.modal-footer{padding:16px 24px;border-top:1px solid #e5e7eb;display:flex;gap:8px;justify-content:flex-end}
+.toast{position:fixed;top:24px;right:24px;padding:14px 24px;border-radius:12px;font-size:14px;font-weight:500;color:#fff;z-index:9999;display:none;box-shadow:0 4px 12px rgba(0,0,0,.15)}
+.toast.show{display:block;animation:slideIn .3s ease}
+@keyframes slideIn{from{transform:translateX(300px);opacity:0}to{transform:translateX(0);opacity:1}}
+.tab-btn{padding:10px 18px;border-radius:10px;font-weight:500;font-size:14px;cursor:pointer;border:none;background:transparent;color:#666;transition:all .2s}
+.tab-btn:hover{background:#e5e7eb}
+.tab-btn.active{background:#fff;color:#1d1d1f;box-shadow:0 1px 4px rgba(0,0,0,.08)}
+.tab-panel{display:none}
+.tab-panel.active{display:block}
+.kpi-card{background:#fff;padding:24px;border-radius:16px;box-shadow:0 1px 3px rgba(0,0,0,.06);cursor:pointer;transition:all .2s}
+.kpi-card:hover{transform:translateY(-2px);box-shadow:0 4px 16px rgba(0,0,0,.1)}
+.cal-cell{min-height:72px;border:1px solid #f3f4f6;padding:6px;cursor:pointer;transition:background .15s;border-radius:8px}
+.cal-cell:hover{background:#f0f7ff}
+.cal-tag{font-size:10px;padding:2px 6px;border-radius:4px;margin-top:2px;display:inline-block;font-weight:500}
+.breakdown-item{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border-radius:10px;cursor:pointer;transition:background .15s}
+.breakdown-item:hover{background:#f9fafb}
+.tree-main{padding:12px 16px;background:#f9fafb;border-radius:10px;margin-bottom:4px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-weight:600}
+.tree-main:hover{background:#f3f4f6}
+.tree-sub{padding:8px 16px 8px 40px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;border-bottom:1px solid #f3f4f6}
+.tree-sub:hover{background:#f9fafb}
+.tree-children{display:none}
+.tree-children.open{display:block}
+.btn-primary{padding:10px 20px;background:#0071E3;color:#fff;border:none;border-radius:10px;font-weight:500;cursor:pointer;font-size:14px;transition:background .2s}
+.btn-primary:hover{background:#0062cc}
+.btn-danger{padding:8px 16px;background:#FF3B30;color:#fff;border:none;border-radius:8px;font-size:13px;cursor:pointer}
+.btn-danger:hover{background:#e0332b}
+.btn-outline{padding:8px 16px;background:#fff;color:#333;border:1px solid #d1d5db;border-radius:8px;font-size:13px;cursor:pointer}
+.btn-outline:hover{background:#f9fafb}
+.btn-green{background:#34C759}.btn-green:hover{background:#2db84e}
+.status-green{color:#34C759}.status-yellow{color:#FF9500}.status-red{color:#FF3B30}
+.badge{display:inline-block;padding:3px 10px;border-radius:6px;font-size:12px;font-weight:500}
+.badge-green{background:#dcfce7;color:#166534}
+.badge-yellow{background:#fef9c3;color:#854d0e}
+.badge-red{background:#fee2e2;color:#991b1b}
+.badge-blue{background:#dbeafe;color:#1e40af}
+.badge-gray{background:#f3f4f6;color:#374151}
+.detail-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f3f4f6;font-size:14px}
+.detail-row:last-child{border:none}
+.detail-label{color:#6b7280}
+.detail-value{font-weight:500}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════ NAV ═══════════════════════════════════ -->
+<nav class="bg-white/80 backdrop-blur-md shadow-sm sticky top-0 z-50">
+<div class="max-w-[1400px] mx-auto px-6 py-3 flex items-center justify-between">
+  <div class="flex items-center gap-3">
+    <div class="w-10 h-10 bg-black rounded-xl flex items-center justify-center text-white text-lg">🔧</div>
+    <span class="text-lg font-bold tracking-tight">Anurak Auto</span>
+  </div>
+  <div class="flex gap-1 bg-gray-100 p-1 rounded-xl">
+    <button class="tab-btn active" onclick="switchTab('dashboard')" id="tb-dashboard">📊 ภาพรวม</button>
+    <button class="tab-btn" onclick="switchTab('reports')" id="tb-reports">📈 รายรับรายจ่าย</button>
+    <button class="tab-btn" onclick="switchTab('ar')" id="tb-ar">💰 ลูกหนี้</button>
+    <button class="tab-btn" onclick="switchTab('ap')" id="tb-ap">💳 เจ้าหนี้</button>
+    <button class="tab-btn" onclick="switchTab('entry')" id="tb-entry">✏️ บันทึก</button>
+    <button class="tab-btn" onclick="switchTab('settings')" id="tb-settings">⚙️ ตั้งค่า</button>
+  </div>
+</div>
+</nav>
+
+<main class="max-w-[1400px] mx-auto px-6 py-8">
+
+<!-- ═══════════════════════════════════ TAB 1: DASHBOARD ═══════════════════════════════════ -->
+<div id="panel-dashboard" class="tab-panel active">
+
+  <!-- KPI Cards -->
+  <p class="text-sm text-gray-400 mb-4 font-medium tracking-wide">ยอดเงินปัจจุบัน</p>
+  <div class="grid grid-cols-4 gap-5 mb-8">
+    <div class="kpi-card" onclick="openKPIModal('bank')">
+      <div class="flex items-center gap-2 mb-2"><div class="w-2.5 h-2.5 rounded-full bg-green-500"></div><span class="text-sm text-gray-500">เงินสดรวมทุกบัญชี</span></div>
+      <div class="text-3xl font-bold text-green-600" id="kpi-bank">฿ 0</div>
+      <div class="text-xs text-gray-400 mt-2" id="kpi-bank-date">อัปเดตล่าสุด</div>
+    </div>
+    <div class="kpi-card" onclick="openKPIModal('od')">
+      <div class="flex items-center gap-2 mb-2"><div class="w-2.5 h-2.5 rounded-full bg-orange-500"></div><span class="text-sm text-gray-500">OD คงเหลือ</span></div>
+      <div class="text-3xl font-bold text-orange-600" id="kpi-od">฿ 0</div>
+      <div class="mt-3 bg-gray-200 h-2 rounded-full overflow-hidden"><div class="bg-orange-500 h-full transition-all" id="od-bar" style="width:0%"></div></div>
+      <div class="text-xs text-gray-400 mt-1" id="kpi-od-info">วงเงิน OD</div>
+    </div>
+    <div class="kpi-card" onclick="openKPIModal('ar')">
+      <div class="flex items-center gap-2 mb-2"><div class="w-2.5 h-2.5 rounded-full bg-blue-500"></div><span class="text-sm text-gray-500">ลูกหนี้การค้า A/R</span></div>
+      <div class="text-3xl font-bold text-blue-600" id="kpi-ar">฿ 0</div>
+      <div class="mt-2"><span class="badge badge-blue" id="kpi-ar-count">0 ใบรอเก็บเงิน</span></div>
+    </div>
+    <div class="kpi-card" onclick="openKPIModal('ap')">
+      <div class="flex items-center gap-2 mb-2"><div class="w-2.5 h-2.5 rounded-full bg-red-500"></div><span class="text-sm text-gray-500">เจ้าหนี้การค้า A/P</span></div>
+      <div class="text-3xl font-bold text-red-600" id="kpi-ap">฿ 0</div>
+      <div class="mt-2"><span class="badge badge-red" id="kpi-ap-count">0 รายการค้างจ่าย</span></div>
+    </div>
+  </div>
+
+  <!-- Calendar + Recent -->
+  <div class="grid grid-cols-2 gap-6">
+    <div class="bg-white rounded-2xl shadow-sm p-6">
+      <div class="flex items-center justify-between mb-5">
+        <button onclick="changeMonth(-1)" class="w-9 h-9 rounded-lg border border-gray-200 flex items-center justify-center hover:bg-gray-50">◀</button>
+        <h3 class="text-lg font-bold" id="cal-title">พฤษภาคม 2568</h3>
+        <button onclick="changeMonth(1)" class="w-9 h-9 rounded-lg border border-gray-200 flex items-center justify-center hover:bg-gray-50">▶</button>
+      </div>
+      <div class="grid grid-cols-7 gap-1 text-center text-xs font-semibold text-gray-400 mb-2">
+        <div>จ</div><div>อ</div><div>พ</div><div>พฤ</div><div>ศ</div><div>ส</div><div>อา</div>
+      </div>
+      <div id="cal-grid" class="grid grid-cols-7 gap-1"></div>
+    </div>
+
+    <div class="bg-white rounded-2xl shadow-sm p-6">
+      <div class="flex items-center justify-between mb-5">
+        <h3 class="text-lg font-bold">รายการล่าสุด</h3>
+        <button onclick="openAllTxnModal()" class="text-sm text-blue-600 hover:underline font-medium">ดูทั้งหมด</button>
+      </div>
+      <div id="recent-list" class="space-y-2"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════ TAB 2: REPORTS ═══════════════════════════════════ -->
+<div id="panel-reports" class="tab-panel">
+
+  <h2 class="text-2xl font-bold mb-6">📈 รายรับรายจ่าย</h2>
+
+  <!-- Date Range -->
+  <div class="bg-white rounded-2xl shadow-sm p-6 mb-6">
+    <div class="flex items-center gap-4 mb-4 flex-wrap">
+      <div><label class="block text-xs font-medium text-gray-500 mb-1">วันเริ่มต้น</label><input type="date" id="rpt-start" class="border border-gray-300 rounded-lg px-3 py-2 text-sm"></div>
+      <div><label class="block text-xs font-medium text-gray-500 mb-1">วันสิ้นสุด</label><input type="date" id="rpt-end" class="border border-gray-300 rounded-lg px-3 py-2 text-sm"></div>
+      <div class="pt-5"><button onclick="loadReports()" class="btn-primary">รีเฟรช</button></div>
+    </div>
+    <div class="flex gap-2">
+      <button onclick="setRange('today')" class="px-3 py-1.5 text-xs border border-gray-200 rounded-lg hover:bg-gray-50 font-medium">วันนี้</button>
+      <button onclick="setRange('week')" class="px-3 py-1.5 text-xs border border-gray-200 rounded-lg hover:bg-gray-50 font-medium">สัปดาห์นี้</button>
+      <button onclick="setRange('month')" class="px-3 py-1.5 text-xs border border-gray-200 rounded-lg hover:bg-gray-50 font-medium">เดือนนี้</button>
+      <button onclick="setRange('year')" class="px-3 py-1.5 text-xs border border-gray-200 rounded-lg hover:bg-gray-50 font-medium">ปีนี้</button>
+    </div>
+  </div>
+
+  <!-- KPI -->
+  <div class="grid grid-cols-4 gap-4 mb-6">
+    <div class="bg-white p-5 rounded-2xl shadow-sm"><div class="text-sm text-gray-500 mb-1">รายรับรวม</div><div class="text-2xl font-bold text-green-600" id="rpt-income">฿ 0</div></div>
+    <div class="bg-white p-5 rounded-2xl shadow-sm"><div class="text-sm text-gray-500 mb-1">รายจ่ายรวม</div><div class="text-2xl font-bold text-red-600" id="rpt-expense">฿ 0</div></div>
+    <div class="bg-white p-5 rounded-2xl shadow-sm"><div class="text-sm text-gray-500 mb-1">กำไรสุทธิ</div><div class="text-2xl font-bold text-blue-600" id="rpt-profit">฿ 0</div></div>
+    <div class="bg-white p-5 rounded-2xl shadow-sm"><div class="text-sm text-gray-500 mb-1">เงินสดปิด</div><div class="text-2xl font-bold" id="rpt-cash">฿ 0</div></div>
+  </div>
+
+  <!-- Breakdown -->
+  <div class="grid grid-cols-2 gap-6">
+    <div class="bg-white rounded-2xl shadow-sm p-6">
+      <h3 class="text-lg font-bold mb-4">รายรับตามแหล่งที่มา</h3>
+      <div id="income-tree"></div>
+    </div>
+    <div class="bg-white rounded-2xl shadow-sm p-6">
+      <h3 class="text-lg font-bold mb-4">รายจ่ายตามหมวดหมู่</h3>
+      <div id="expense-tree"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════ TAB 3: AR ═══════════════════════════════════ -->
+<div id="panel-ar" class="tab-panel">
+  <h2 class="text-2xl font-bold mb-4">💰 ลูกหนี้ค้างชำระ (Accounts Receivable)</h2>
+  <div class="grid grid-cols-3 gap-4 mb-6">
+    <div class="bg-white p-5 rounded-2xl shadow-sm"><div class="text-sm text-gray-500 mb-1">ยอดลูกหนี้รวม</div><div class="text-2xl font-bold text-blue-600" id="ar-total">฿ 0</div></div>
+    <div class="bg-white p-5 rounded-2xl shadow-sm"><div class="text-sm text-gray-500 mb-1">🟡 ค้างเกิน 30 วัน</div><div class="text-xl font-bold text-yellow-600" id="ar-over30">0 รายการ</div></div>
+    <div class="bg-white p-5 rounded-2xl shadow-sm"><div class="text-sm text-gray-500 mb-1">🔴 ค้างเกิน 60 วัน</div><div class="text-xl font-bold text-red-600" id="ar-over60">0 รายการ</div></div>
+  </div>
+  <div class="bg-white rounded-2xl shadow-sm p-6">
+    <div class="flex gap-3 mb-4">
+      <select id="ar-filter-contact" class="border border-gray-300 rounded-lg px-3 py-2 text-sm" onchange="renderARTable()"><option value="">ทุกบริษัท</option></select>
+      <select id="ar-filter-status" class="border border-gray-300 rounded-lg px-3 py-2 text-sm" onchange="renderARTable()"><option value="pending">ค้างชำระ</option><option value="received">ชำระแล้ว</option><option value="">ทั้งหมด</option></select>
+    </div>
+    <div class="overflow-x-auto"><table class="w-full text-sm"><thead><tr class="bg-gray-50 text-left"><th class="p-3">วันที่</th><th class="p-3">เลขที่</th><th class="p-3">ลูกค้า</th><th class="p-3">ครบกำหนด</th><th class="p-3 text-right">ยอดเงิน</th><th class="p-3">สถานะ</th></tr></thead><tbody id="ar-tbody"></tbody></table></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════ TAB 4: AP ═══════════════════════════════════ -->
+<div id="panel-ap" class="tab-panel">
+  <h2 class="text-2xl font-bold mb-4">💳 เจ้าหนี้ค้างจ่าย (Accounts Payable)</h2>
+  <div class="grid grid-cols-3 gap-4 mb-6">
+    <div class="bg-white p-5 rounded-2xl shadow-sm"><div class="text-sm text-gray-500 mb-1">ยอดเจ้าหนี้รวม</div><div class="text-2xl font-bold text-red-600" id="ap-total">฿ 0</div></div>
+    <div class="bg-white p-5 rounded-2xl shadow-sm"><div class="text-sm text-gray-500 mb-1">🟡 ครบกำหนดใน 7 วัน</div><div class="text-xl font-bold text-yellow-600" id="ap-due7">0 รายการ</div></div>
+    <div class="bg-white p-5 rounded-2xl shadow-sm"><div class="text-sm text-gray-500 mb-1">🔴 เกินกำหนดชำระ</div><div class="text-xl font-bold text-red-600" id="ap-overdue">0 รายการ</div></div>
+  </div>
+  <div class="bg-white rounded-2xl shadow-sm p-6">
+    <div class="flex gap-3 mb-4">
+      <select id="ap-filter-contact" class="border border-gray-300 rounded-lg px-3 py-2 text-sm" onchange="renderAPTable()"><option value="">ทุกร้าน</option></select>
+      <select id="ap-filter-status" class="border border-gray-300 rounded-lg px-3 py-2 text-sm" onchange="renderAPTable()"><option value="pending">ค้างจ่าย</option><option value="paid">จ่ายแล้ว</option><option value="">ทั้งหมด</option></select>
+    </div>
+    <div class="overflow-x-auto"><table class="w-full text-sm"><thead><tr class="bg-gray-50 text-left"><th class="p-3">วันที่</th><th class="p-3">เลขที่</th><th class="p-3">เจ้าหนี้</th><th class="p-3">ครบกำหนด</th><th class="p-3 text-right">ยอดเงิน</th><th class="p-3">สถานะ</th></tr></thead><tbody id="ap-tbody"></tbody></table></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════ TAB 5: ENTRY (Smart Wizard) ═══════════════════════════════════ -->
+<div id="panel-entry" class="tab-panel">
+  <div class="bg-white rounded-2xl shadow-sm p-8 max-w-4xl mx-auto">
+    <!-- Sub-Tab: รายรับ / รายจ่าย -->
+    <div class="flex gap-2 mb-6">
+      <button class="tab-btn active" id="et-income" onclick="switchEntryTab('income')">💰 รายรับ</button>
+      <button class="tab-btn" id="et-expense" onclick="switchEntryTab('expense')">📦 รายจ่าย</button>
+    </div>
+    <!-- Step Indicator -->
+    <div class="flex gap-2 mb-8" id="wizard-dots">
+      <div class="flex-1 h-1 rounded bg-blue-500"></div>
+      <div class="flex-1 h-1 rounded bg-gray-200"></div>
+      <div class="flex-1 h-1 rounded bg-gray-200"></div>
+      <div class="flex-1 h-1 rounded bg-gray-200"></div>
+      <div class="flex-1 h-1 rounded bg-gray-200"></div>
+    </div>
+
+    <!-- STEP 1: Select Type -->
+    <div id="wz-step-1" class="wz-step">
+      <h3 class="text-xl font-bold mb-2" id="wz-s1-title">เลือกประเภทรายรับ</h3>
+      <p class="text-gray-500 mb-6 text-sm">เลือกลักษณะของรายการที่ต้องการบันทึก</p>
+      <div id="wz-type-grid" class="grid grid-cols-3 gap-4"></div>
+      <div class="flex justify-end mt-8"><button class="btn-primary disabled:opacity-40" id="wz-s1-next" onclick="wzGoStep(2)" disabled>ถัดไป →</button></div>
+    </div>
+
+    <!-- STEP 2: Details -->
+    <div id="wz-step-2" class="wz-step" style="display:none">
+      <h3 class="text-xl font-bold mb-2">กรอกรายละเอียด</h3>
+      <p class="text-gray-500 mb-6 text-sm">กรอกข้อมูลผู้ติดต่อและวันที่</p>
+      <div id="wz-step2-fields" class="space-y-4"></div>
+      <div class="flex justify-between mt-8"><button class="btn-outline" onclick="wzGoStep(1)">← กลับ</button><button class="btn-primary" onclick="wzGoStep(3)">ถัดไป →</button></div>
+    </div>
+
+    <!-- STEP 3: Amount -->
+    <div id="wz-step-3" class="wz-step" style="display:none">
+      <h3 class="text-xl font-bold mb-2">จำนวนเงิน</h3>
+      <p class="text-gray-500 mb-6 text-sm">กรอกยอดเงิน</p>
+      <div id="wz-step3-fields"></div>
+      <div class="flex justify-between mt-8"><button class="btn-outline" onclick="wzGoStep(2)">← กลับ</button><button class="btn-primary" onclick="wzGoStep(4)">ถัดไป →</button></div>
+    </div>
+
+    <!-- STEP 4: Attach + Summary -->
+    <div id="wz-step-4" class="wz-step" style="display:none">
+      <h3 class="text-xl font-bold mb-2">แนบเอกสาร & สรุป</h3>
+      <p class="text-gray-500 mb-6 text-sm">แนบไฟล์ใบเสร็จ/ใบแจ้งหนี้ (ไม่บังคับ)</p>
+      <div class="border-2 border-dashed border-gray-300 rounded-xl p-10 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50/30 mb-6" onclick="document.getElementById('wz-file').click()">
+        <input type="file" id="wz-file" multiple accept="image/*,.pdf" style="display:none"><div class="text-4xl mb-2">📎</div><div class="font-medium">คลิกหรือลากไฟล์มาวางที่นี่</div><div class="text-sm text-gray-400 mt-1">JPG, PNG, PDF ≤ 10MB</div>
+      </div>
+      <div class="bg-gray-50 rounded-xl p-5"><div class="font-semibold mb-3 text-sm text-gray-500">สรุปรายการก่อนบันทึก</div><div id="wz-summary" class="text-sm space-y-2"></div></div>
+      <div class="flex justify-between mt-8"><button class="btn-outline" onclick="wzGoStep(3)">← กลับ</button><button class="btn-primary btn-green" onclick="wzSubmit()">✓ บันทึกรายการ</button></div>
+    </div>
+
+    <!-- STEP 5: Success -->
+    <div id="wz-step-5" class="wz-step" style="display:none">
+      <div class="text-center py-16">
+        <div class="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center text-white text-4xl mx-auto mb-4">✓</div>
+        <h2 class="text-2xl font-bold mb-2">บันทึกรายการเรียบร้อย</h2>
+        <p class="text-gray-500 mb-6" id="wz-success-id">หมายเลขรายการ: —</p>
+        <div class="flex gap-3 justify-center"><button class="btn-outline" onclick="switchTab('dashboard')">ดูภาพรวม</button><button class="btn-primary" onclick="wzReset()">+ บันทึกรายการใหม่</button></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════ TAB 6: SETTINGS (Placeholder) ═══════════════════════════════════ -->
+<div id="panel-settings" class="tab-panel">
+  <div class="flex gap-6" style="min-height:70vh">
+    <!-- Sidebar -->
+    <div class="w-56 flex-shrink-0">
+      <h2 class="text-lg font-bold mb-4">⚙️ ตั้งค่าระบบ</h2>
+      <nav class="space-y-1">
+        <div class="px-4 py-3 rounded-xl cursor-pointer font-medium text-sm bg-blue-500 text-white" id="snav-conn" onclick="switchSettings('conn')">🔗 ระบบเชื่อมต่อ</div>
+        <div class="px-4 py-3 rounded-xl cursor-pointer font-medium text-sm hover:bg-gray-100" id="snav-cats" onclick="switchSettings('cats')">📂 จัดการหมวดหมู่</div>
+        <div class="px-4 py-3 rounded-xl cursor-pointer font-medium text-sm hover:bg-gray-100" id="snav-contacts" onclick="switchSettings('contacts')">👥 ผู้ติดต่อ</div>
+        <div class="px-4 py-3 rounded-xl cursor-pointer font-medium text-sm hover:bg-gray-100" id="snav-banks" onclick="switchSettings('banks')">🏦 บัญชีธนาคาร</div>
+        <div class="px-4 py-3 rounded-xl cursor-pointer font-medium text-sm hover:bg-gray-100" id="snav-company" onclick="switchSettings('company')">🏢 ข้อมูลบริษัท</div>
+        <div class="px-4 py-3 rounded-xl cursor-pointer font-medium text-sm hover:bg-gray-100" id="snav-ui" onclick="switchSettings('ui')">🎨 ปรับแต่ง UI</div>
+      </nav>
+    </div>
+
+    <!-- Content Panels -->
+    <div class="flex-1">
+
+      <!-- Panel: Connection -->
+      <div id="sp-conn" class="sp-panel">
+        <div class="bg-white rounded-2xl shadow-sm p-6">
+          <h3 class="text-lg font-bold mb-4">🔗 ระบบเชื่อมต่อ</h3>
+          <div class="space-y-4 max-w-xl">
+            <div><label class="block text-sm font-medium mb-1">GAS Web App URL</label><input type="text" id="gas-url" class="w-full border border-gray-300 rounded-lg p-2.5 text-sm font-mono" placeholder="https://script.google.com/macros/s/.../exec"></div>
+            <div class="flex gap-2"><button onclick="saveGasUrl()" class="btn-primary">💾 บันทึก</button><button onclick="testConn()" class="btn-outline">🧪 ทดสอบ</button></div>
+            <div id="conn-status" class="p-3 rounded-lg text-sm" style="display:none"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Panel: Categories -->
+      <div id="sp-cats" class="sp-panel" style="display:none">
+        <div class="bg-white rounded-2xl shadow-sm p-6">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-bold">📂 จัดการหมวดหมู่รายจ่าย</h3>
+            <div class="flex gap-2"><button class="btn-primary" onclick="openCatModal('Main')">+ หมวดหลัก</button><button class="btn-outline" onclick="openCatModal('Sub')">+ หมวดย่อย</button></div>
+          </div>
+          <div id="cat-tree-view"></div>
+        </div>
+      </div>
+
+      <!-- Panel: Contacts -->
+      <div id="sp-contacts" class="sp-panel" style="display:none">
+        <div class="bg-white rounded-2xl shadow-sm p-6">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-bold">👥 ผู้ติดต่อ</h3>
+            <button class="btn-primary" onclick="openContactModal()">+ เพิ่มผู้ติดต่อ</button>
+          </div>
+          <div class="overflow-x-auto"><table class="w-full text-sm"><thead><tr class="bg-gray-50"><th class="p-3 text-left">ชื่อ</th><th class="p-3 text-left">ประเภท</th><th class="p-3 text-left">เลขผู้เสียภาษี</th><th class="p-3 text-left">เบอร์โทร</th><th class="p-3 text-right">จัดการ</th></tr></thead><tbody id="contacts-tbody"></tbody></table></div>
+        </div>
+      </div>
+
+      <!-- Panel: Banks -->
+      <div id="sp-banks" class="sp-panel" style="display:none">
+        <div class="bg-white rounded-2xl shadow-sm p-6">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-bold">🏦 บัญชีธนาคาร</h3>
+            <button class="btn-primary" onclick="openBankModal()">+ เพิ่มบัญชี</button>
+          </div>
+          <div class="overflow-x-auto"><table class="w-full text-sm"><thead><tr class="bg-gray-50"><th class="p-3 text-left">ธนาคาร</th><th class="p-3 text-left">เลขบัญชี</th><th class="p-3 text-left">ชื่อบัญชี</th><th class="p-3 text-left">สาขา</th><th class="p-3">แสดงบนบิล</th><th class="p-3 text-right">จัดการ</th></tr></thead><tbody id="banks-tbody"></tbody></table></div>
+        </div>
+      </div>
+
+      <!-- Panel: Company -->
+      <div id="sp-company" class="sp-panel" style="display:none">
+        <div class="bg-white rounded-2xl shadow-sm p-6 max-w-2xl">
+          <h3 class="text-lg font-bold mb-4">🏢 ข้อมูลบริษัท</h3>
+          <div class="grid grid-cols-2 gap-4">
+            <div><label class="block text-sm font-medium mb-1">ชื่อกิจการ</label><input type="text" id="cfg-company" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"></div>
+            <div><label class="block text-sm font-medium mb-1">เลขผู้เสียภาษี</label><input type="text" id="cfg-taxid" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"></div>
+            <div><label class="block text-sm font-medium mb-1">อัตรา VAT (%)</label><input type="number" id="cfg-vat" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" value="7"></div>
+            <div><label class="block text-sm font-medium mb-1">WHT (%)</label><input type="number" id="cfg-wht" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" value="3"></div>
+            <div><label class="block text-sm font-medium mb-1">วงเงิน OD (฿)</label><input type="number" id="cfg-od" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" value="500000"></div>
+            <div><label class="block text-sm font-medium mb-1">ปีงบประมาณ (พ.ศ.)</label><input type="text" id="cfg-year" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" value="2568"></div>
+          </div>
+          <button class="btn-primary mt-4" onclick="saveCompanyConfig()">💾 บันทึก</button>
+        </div>
+      </div>
+
+      <!-- Panel: UI Customization -->
+      <div id="sp-ui" class="sp-panel" style="display:none">
+        <div class="bg-white rounded-2xl shadow-sm p-6 max-w-2xl">
+          <h3 class="text-lg font-bold mb-4">🎨 ปรับแต่ง UI</h3>
+          <div class="space-y-6">
+            <div><label class="block text-sm font-medium mb-2">สีหลัก (Primary Color)</label><div class="flex items-center gap-3"><div class="w-10 h-10 rounded-lg border-2 border-gray-200 cursor-pointer" id="ui-primary-preview" style="background:#0071E3" onclick="document.getElementById('ui-primary').click()"></div><input type="color" id="ui-primary" value="#0071E3" class="hidden" onchange="document.getElementById('ui-primary-preview').style.background=this.value"><input type="text" id="ui-primary-text" value="#0071E3" class="border border-gray-300 rounded-lg px-3 py-2 text-sm w-32" readonly></div></div>
+            <div><label class="block text-sm font-medium mb-2">สีรอง (Secondary Color)</label><div class="flex items-center gap-3"><div class="w-10 h-10 rounded-lg border-2 border-gray-200 cursor-pointer" id="ui-secondary-preview" style="background:#34C759" onclick="document.getElementById('ui-secondary').click()"></div><input type="color" id="ui-secondary" value="#34C759" class="hidden" onchange="document.getElementById('ui-secondary-preview').style.background=this.value"><input type="text" id="ui-secondary-text" value="#34C759" class="border border-gray-300 rounded-lg px-3 py-2 text-sm w-32" readonly></div></div>
+            <div><label class="block text-sm font-medium mb-2">โลโก้บริษัท</label><input type="text" id="ui-logo" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" placeholder="https://example.com/logo.png"><div id="ui-logo-preview" class="mt-2 hidden"><img id="ui-logo-img" src="" class="max-h-20 rounded"></div></div>
+            <div class="border-t pt-4"><h4 class="font-semibold mb-3">เปิด/ปิดฟีเจอร์</h4>
+              <div class="space-y-3">
+                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg"><span class="text-sm">แสดงปุ่มส่วนลด</span><div class="w-12 h-7 rounded-full cursor-pointer relative bg-green-500 transition" id="ft-discount" onclick="this.classList.toggle('bg-green-500');this.classList.toggle('bg-gray-300')"><div class="w-5 h-5 bg-white rounded-full absolute top-1 left-[26px]"></div></div></div>
+                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg"><span class="text-sm">แสดงราคาทุน</span><div class="w-12 h-7 rounded-full cursor-pointer relative bg-gray-300 transition" id="ft-cost" onclick="this.classList.toggle('bg-green-500');this.classList.toggle('bg-gray-300')"><div class="w-5 h-5 bg-white rounded-full absolute top-1 left-0.5"></div></div></div>
+                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg"><span class="text-sm">เปิดใช้งาน VAT</span><div class="w-12 h-7 rounded-full cursor-pointer relative bg-green-500 transition" id="ft-vat" onclick="this.classList.toggle('bg-green-500');this.classList.toggle('bg-gray-300')"><div class="w-5 h-5 bg-white rounded-full absolute top-1 left-[26px]"></div></div></div>
+                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg"><span class="text-sm">เปิดใช้งาน WHT</span><div class="w-12 h-7 rounded-full cursor-pointer relative bg-green-500 transition" id="ft-wht" onclick="this.classList.toggle('bg-green-500');this.classList.toggle('bg-gray-300')"><div class="w-5 h-5 bg-white rounded-full absolute top-1 left-[26px]"></div></div></div>
+                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg"><span class="text-sm">แสดงเมนูรายงาน</span><div class="w-12 h-7 rounded-full cursor-pointer relative bg-green-500 transition" id="ft-reports" onclick="this.classList.toggle('bg-green-500');this.classList.toggle('bg-gray-300')"><div class="w-5 h-5 bg-white rounded-full absolute top-1 left-[26px]"></div></div></div>
+                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg"><span class="text-sm">แสดงการแจ้งเตือน</span><div class="w-12 h-7 rounded-full cursor-pointer relative bg-green-500 transition" id="ft-notif" onclick="this.classList.toggle('bg-green-500');this.classList.toggle('bg-gray-300')"><div class="w-5 h-5 bg-white rounded-full absolute top-1 left-[26px]"></div></div></div>
+              </div>
+            </div>
+            <button class="btn-primary" onclick="saveUISettings()">💾 บันทึกการตั้งค่า</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</main>
+
+<!-- ═══════════════════════════════════ MODALS ═══════════════════════════════════ -->
+
+<!-- Modal: KPI Detail -->
+<div id="modal-kpi" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-kpi')">
+<div class="modal-box">
+  <div class="modal-header"><h3 id="modal-kpi-title">รายละเอียด</h3><button class="modal-close" onclick="closeModal('modal-kpi')">✕</button></div>
+  <div class="modal-body" id="modal-kpi-body"></div>
+</div>
+</div>
+
+<!-- Modal: Transaction Detail -->
+<div id="modal-txn" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-txn')">
+<div class="modal-box">
+  <div class="modal-header"><h3>รายละเอียดรายการ</h3><button class="modal-close" onclick="closeModal('modal-txn')">✕</button></div>
+  <div class="modal-body" id="modal-txn-body"></div>
+  <div class="modal-footer">
+    <button class="btn-primary" onclick="editTxn()">✏️ แก้ไข</button>
+    <button class="btn-danger" onclick="confirmDeleteTxn()">🗑️ ลบ</button>
+  </div>
+</div>
+</div>
+
+<!-- Modal: All Transactions -->
+<div id="modal-all" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-all')">
+<div class="modal-box" style="max-width:800px">
+  <div class="modal-header"><h3 id="modal-all-title">รายการทั้งหมด</h3><button class="modal-close" onclick="closeModal('modal-all')">✕</button></div>
+  <div class="modal-body" id="modal-all-body"></div>
+</div>
+</div>
+
+<!-- Modal: Confirm Delete -->
+<div id="modal-delete" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-delete')">
+<div class="modal-box" style="max-width:400px">
+  <div class="modal-header"><h3>ยืนยันการลบ</h3><button class="modal-close" onclick="closeModal('modal-delete')">✕</button></div>
+  <div class="modal-body"><p class="text-gray-600">คุณแน่ใจหรือไม่ว่าต้องการลบรายการนี้? การกระทำนี้ไม่สามารถย้อนกลับได้</p></div>
+  <div class="modal-footer">
+    <button class="btn-outline" onclick="closeModal('modal-delete')">ยกเลิก</button>
+    <button class="btn-danger" onclick="doDeleteTxn()">ลบรายการ</button>
+  </div>
+</div>
+</div>
+
+<!-- Modal: Category Drilldown -->
+<div id="modal-drill" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-drill')">
+<div class="modal-box" style="max-width:700px">
+  <div class="modal-header"><h3 id="modal-drill-title">รายละเอียด</h3><button class="modal-close" onclick="closeModal('modal-drill')">✕</button></div>
+  <div class="modal-body" id="modal-drill-body"></div>
+</div>
+</div>
+
+<!-- Modal: Category CRUD -->
+<div id="modal-cat" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-cat')">
+<div class="modal-box" style="max-width:480px">
+  <div class="modal-header"><h3 id="modal-cat-title">เพิ่มหมวดหมู่</h3><button class="modal-close" onclick="closeModal('modal-cat')">✕</button></div>
+  <div class="modal-body">
+    <div class="space-y-4">
+      <div><label class="block text-sm font-medium mb-1">ชื่อหมวดหมู่</label><input type="text" id="cat-name" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"></div>
+      <div><label class="block text-sm font-medium mb-1">ประเภท</label><div class="flex gap-4"><label class="flex items-center gap-2"><input type="radio" name="cat-type" value="Main" id="cat-type-main"> หลัก</label><label class="flex items-center gap-2"><input type="radio" name="cat-type" value="Sub" id="cat-type-sub" checked> ย่อย</label></div></div>
+      <div id="cat-parent-wrap"><label class="block text-sm font-medium mb-1">หมวดหมู่แม่</label><select id="cat-parent" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"></select></div>
+      <div><label class="block text-sm font-medium mb-1">รหัสบัญชี</label><input type="text" id="cat-code" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" placeholder="5100"></div>
+      <div><label class="block text-sm font-medium mb-1">สีประจำหมวดหมู่</label><div class="flex items-center gap-3"><div class="w-10 h-10 rounded-lg border-2 border-gray-200 cursor-pointer" id="cat-color-preview" style="background:#3B82F6" onclick="document.getElementById('cat-color').click()"></div><input type="color" id="cat-color" value="#3B82F6" class="hidden" onchange="document.getElementById('cat-color-preview').style.background=this.value"></div></div>
+      <div class="flex items-center gap-2"><input type="checkbox" id="cat-active" checked><label class="text-sm">เปิดใช้งาน</label></div>
+    </div>
+  </div>
+  <div class="modal-footer"><button class="btn-outline" onclick="closeModal('modal-cat')">ยกเลิก</button><button class="btn-primary" onclick="saveCat()">บันทึก</button></div>
+</div>
+</div>
+
+<!-- Modal: Contact CRUD -->
+<div id="modal-contact" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-contact')">
+<div class="modal-box" style="max-width:520px">
+  <div class="modal-header"><h3 id="modal-contact-title">เพิ่มผู้ติดต่อ</h3><button class="modal-close" onclick="closeModal('modal-contact')">✕</button></div>
+  <div class="modal-body">
+    <div class="space-y-4">
+      <div><label class="block text-sm font-medium mb-1">ประเภท</label><select id="ct-type" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"><option>บริษัทประกันภัย</option><option>ร้านค้า</option><option>ลูกค้า</option><option>พนักงาน</option><option>อื่นๆ</option></select></div>
+      <div><label class="block text-sm font-medium mb-1">ชื่อบริษัท / ร้าน</label><input type="text" id="ct-name" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"></div>
+      <div><label class="block text-sm font-medium mb-1">เลขผู้เสียภาษี (13 หลัก)</label><input type="text" id="ct-taxid" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" maxlength="13"></div>
+      <div><label class="block text-sm font-medium mb-1">ที่อยู่</label><textarea id="ct-address" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" rows="2"></textarea></div>
+      <div class="grid grid-cols-2 gap-4"><div><label class="block text-sm font-medium mb-1">เบอร์โทร</label><input type="tel" id="ct-phone" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"></div><div><label class="block text-sm font-medium mb-1">อีเมล</label><input type="email" id="ct-email" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"></div></div>
+      <div><label class="block text-sm font-medium mb-1">วงเงินเครดิต (฿)</label><input type="number" id="ct-credit" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" placeholder="100000"></div>
+    </div>
+  </div>
+  <div class="modal-footer"><button class="btn-outline" onclick="closeModal('modal-contact')">ยกเลิก</button><button class="btn-primary" onclick="saveContactForm()">บันทึก</button></div>
+</div>
+</div>
+
+<!-- Modal: Bank CRUD -->
+<div id="modal-bank" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-bank')">
+<div class="modal-box" style="max-width:480px">
+  <div class="modal-header"><h3 id="modal-bank-title">เพิ่มบัญชีธนาคาร</h3><button class="modal-close" onclick="closeModal('modal-bank')">✕</button></div>
+  <div class="modal-body">
+    <div class="space-y-4">
+      <div><label class="block text-sm font-medium mb-1">ธนาคาร</label><select id="bk-name" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"><option>เงินสด</option><option>ธนาคารกรุงเทพ</option><option>ธนาคารกสิกรไทย</option><option>ธนาคารไทยพาณิชย์</option><option>ธนาคารกรุงไทย</option><option>ธนาคารกรุงศรีอยุธยา</option><option>ธนาคารทหารไทยธนชาต</option></select></div>
+      <div><label class="block text-sm font-medium mb-1">เลขที่บัญชี</label><input type="text" id="bk-accno" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" placeholder="123-4-56789-0"></div>
+      <div><label class="block text-sm font-medium mb-1">ชื่อบัญชี</label><input type="text" id="bk-accname" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"></div>
+      <div><label class="block text-sm font-medium mb-1">สาขา</label><input type="text" id="bk-branch" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"></div>
+      <div class="grid grid-cols-2 gap-4"><div><label class="block text-sm font-medium mb-1">ประเภท</label><select id="bk-type" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"><option>เงินสด</option><option>ออมทรัพย์</option><option>กระแสรายวัน</option></select></div><div><label class="block text-sm font-medium mb-1">รหัสบัญชี (Chart)</label><input type="text" id="bk-code" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" value="1000" placeholder="1000"></div></div>
+      <div class="grid grid-cols-2 gap-4"><div><label class="block text-sm font-medium mb-1">💰 ยอดเงินเบื้องต้น (฿)</label><input type="number" id="bk-opening" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" value="0"></div><div><label class="block text-sm font-medium mb-1">📅 วันที่เริ่มต้น</label><input type="date" id="bk-opening-date" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"></div></div>
+      <div class="grid grid-cols-2 gap-4"><div><label class="block text-sm font-medium mb-1">วงเงิน OD (฿)</label><input type="number" id="bk-od-limit" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" value="0"></div><div><label class="block text-sm font-medium mb-1">OD ใช้ไปเบื้องต้น (฿)</label><input type="number" id="bk-od-used" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" value="0"></div></div>
+      <div class="flex items-center gap-2"><input type="checkbox" id="bk-invoice" checked><label class="text-sm">แสดงบนใบกำกับภาษี/ใบเสร็จ</label></div>
+    </div>
+  </div>
+  <div class="modal-footer"><button class="btn-outline" onclick="closeModal('modal-bank')">ยกเลิก</button><button class="btn-primary" onclick="saveBankForm()">บันทึก</button></div>
+</div>
+</div>
+
+<!-- Modal: AR Payment -->
+<div id="modal-ar-detail" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-ar-detail')">
+<div class="modal-box">
+  <div class="modal-header"><h3>รายละเอียดลูกหนี้</h3><button class="modal-close" onclick="closeModal('modal-ar-detail')">✕</button></div>
+  <div class="modal-body" id="modal-ar-detail-body"></div>
+  <div class="modal-footer">
+    <button class="btn-primary btn-green" onclick="openPaymentModal('ar')">💰 บันทึกรับชำระ</button>
+    <button class="btn-primary" onclick="editTxnFromAR()">✏️ แก้ไข</button>
+    <button class="btn-danger" onclick="deleteTxnFromAR()">🗑️ ลบ</button>
+  </div>
+</div>
+</div>
+
+<!-- Modal: AP Payment -->
+<div id="modal-ap-detail" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-ap-detail')">
+<div class="modal-box">
+  <div class="modal-header"><h3>รายละเอียดเจ้าหนี้</h3><button class="modal-close" onclick="closeModal('modal-ap-detail')">✕</button></div>
+  <div class="modal-body" id="modal-ap-detail-body"></div>
+  <div class="modal-footer">
+    <button class="btn-primary" style="background:#FF9500" onclick="openPaymentModal('ap')">💳 บันทึกจ่ายเงิน</button>
+    <button class="btn-primary" onclick="editTxnFromAP()">✏️ แก้ไข</button>
+    <button class="btn-danger" onclick="deleteTxnFromAP()">🗑️ ลบ</button>
+  </div>
+</div>
+</div>
+
+<!-- Modal: Record Payment (shared AR/AP) -->
+<div id="modal-payment" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-payment')">
+<div class="modal-box">
+  <div class="modal-header"><h3 id="modal-pay-title">บันทึกรับชำระ</h3><button class="modal-close" onclick="closeModal('modal-payment')">✕</button></div>
+  <div class="modal-body">
+    <div class="detail-row"><span class="detail-label">ยอดตามบิล</span><span class="detail-value text-lg font-bold" id="pay-outstanding">฿ 0</span></div>
+    <div class="space-y-4 mt-4">
+      <div><label class="block text-sm font-medium mb-1">WHT หัก ณ ที่จ่าย 3% (฿)</label><input type="number" id="pay-wht" class="w-full border border-gray-300 rounded-lg px-3 py-2" placeholder="0" oninput="calcPaySummary()"></div>
+      <div class="bg-blue-50 rounded-lg p-3"><div class="text-sm text-blue-700">ยอดที่ควรได้รับ: <span class="font-bold" id="pay-expected">฿ 0</span></div></div>
+      <div><label class="block text-sm font-medium mb-1">🆕 ยอดเงินที่ได้รับจริง (฿)</label><input type="number" id="pay-actual" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-lg font-bold" placeholder="0" oninput="calcPaySummary()"></div>
+      <div><label class="block text-sm font-medium mb-1">เข้า/ออกบัญชี</label><select id="pay-bank" class="w-full border border-gray-300 rounded-lg px-3 py-2"></select></div>
+      <div id="pay-wht-section"></div>
+      <div><label class="block text-sm font-medium mb-1">วันที่รับ/จ่ายเงิน</label><input type="date" id="pay-date" class="w-full border border-gray-300 rounded-lg px-3 py-2"></div>
+      <div><label class="block text-sm font-medium mb-1">🆕 หมายเหตุ</label><input type="text" id="pay-notes" class="w-full border border-gray-300 rounded-lg px-3 py-2" placeholder="เช่น ประกันหัก excess ฿4,000"></div>
+    </div>
+    <div class="bg-gray-50 rounded-xl p-4 mt-4">
+      <div class="text-sm font-semibold text-gray-500 mb-2">สรุป</div>
+      <div id="pay-summary" class="text-sm space-y-1"></div>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button class="btn-outline" onclick="closeModal('modal-payment')">ยกเลิก</button>
+    <button class="btn-primary btn-green" onclick="submitPayment()">บันทึก</button>
+  </div>
+</div>
+</div>
+
+
+<!-- Toast -->
+<div id="toast" class="toast"></div>
+
+<!-- ═══════════════════════════════════ JAVASCRIPT ═══════════════════════════════════ -->
+<script>
+// ─── Global State ───
+let GAS_URL = '';
+let allTxns = [];
+let allContacts = [];
+let allCategories = [];
+let allBanks = [];
+let kpis = {};
+let currentMonth = new Date();
+let selectedTxnID = '';
+
+// ─── Init ───
+document.addEventListener('DOMContentLoaded', () => {
+  GAS_URL = localStorage.getItem('GAS_URL') || '';
+  document.getElementById('gas-url').value = GAS_URL;
+  const now = new Date();
+  document.getElementById('rpt-start').value = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+  document.getElementById('rpt-end').value = now.toISOString().split('T')[0];
+  renderCalendar();
+  renderRecent();
+  if (GAS_URL) loadData();
+});
+
+// ─── Tab Navigation ───
+function switchTab(id) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel-' + id).classList.add('active');
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tb-' + id).classList.add('active');
+  if (id === 'reports') loadReports();
+  if (id === 'ar') { populateARAPFilters(); renderARTable(); }
+  if (id === 'ap') { populateARAPFilters(); renderAPTable(); }
+  if (id === 'entry') wzReset();
+  if (id === 'settings') { renderCatTree(); renderContactsTable(); renderBanksTable(); loadCompanyConfig(); }
+}
+
+// ─── API Call ───
+async function apiCall(action, data) {
+  if (!GAS_URL) { toast('⚠️ ยังไม่ได้ตั้งค่า GAS URL', '#FF9500'); return null; }
+  try {
+    const payload = JSON.stringify({ action, ...(data || {}) });
+    const res = await fetch(GAS_URL, {
+      method: 'POST',
+      body: payload,
+      redirect: 'follow'
+    });
+    const text = await res.text();
+    const json = JSON.parse(text);
+    if (json.status === 'success' && json.data) return json.data;
+    toast('❌ ' + (json.data?.message || 'Unknown error'), '#FF3B30');
+    return null;
+  } catch (e) { toast('❌ ' + e.message, '#FF3B30'); return null; }
+}
+
+async function loadData() {
+  const d = await apiCall('getInitialData');
+  if (!d || !d.data) return;
+  allTxns = d.data.transactions || [];
+  allContacts = d.data.contacts || [];
+  allCategories = d.data.categories || [];
+  allBanks = d.data.banks || [];
+  kpis = d.data.kpis || {};
+  updateKPIs();
+  renderCalendar();
+  renderRecent();
+  toast('✅ เชื่อมต่อสำเร็จ', '#34C759');
+}
+
+// ─── Format ───
+const fmt = n => '฿ ' + (n || 0).toLocaleString('th-TH', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+const fmtDate = d => { try { return new Date(d).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: '2-digit' }); } catch(e) { return '-'; } };
+const thaiMonths = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+
+// ─── KPIs ───
+function updateKPIs() {
+  document.getElementById('kpi-bank').textContent = fmt(kpis.totalCash);
+  document.getElementById('kpi-od').textContent = fmt(kpis.odRemaining);
+  const odPct = kpis.odLimit ? ((kpis.odUsed || 0) / kpis.odLimit * 100) : 0;
+  document.getElementById('od-bar').style.width = odPct + '%';
+  document.getElementById('kpi-od-info').textContent = `วงเงิน ${fmt(kpis.odLimit)} | ใช้ไป ${fmt(kpis.odUsed)} (${odPct.toFixed(1)}%)`;
+  document.getElementById('kpi-ar').textContent = fmt(kpis.arTotal);
+  document.getElementById('kpi-ar-count').textContent = `📋 ${kpis.arCount || 0} ใบรอเก็บเงิน`;
+  document.getElementById('kpi-ap').textContent = fmt(kpis.apTotal);
+  document.getElementById('kpi-ap-count').textContent = `📦 ${kpis.apCount || 0} รายการค้างจ่าย`;
+  document.getElementById('kpi-bank-date').textContent = 'อัปเดตล่าสุด ' + fmtDate(kpis.lastUpdate);
+}
+
+// ─── KPI Modal ───
+function openKPIModal(type) {
+  let title = '', body = '';
+  if (type === 'bank') {
+    title = '💵 เงินสดรวมทุกบัญชี';
+    body = `<div class="detail-row"><span class="detail-label">ยอดรวม</span><span class="detail-value text-green-600 text-lg font-bold">${fmt(kpis.totalCash)}</span></div><div class="mt-3 mb-2 text-sm font-semibold text-gray-500">รายละเอียดแต่ละบัญชี:</div>`;
+    allBanks.forEach(b => {
+      const opening = parseFloat(b.Opening_Balance) || 0;
+      const icon = b.Account_Type === 'เงินสด' ? '💵' : '🏦';
+      body += `<div class="detail-row"><span class="detail-label">${icon} ${b.Bank_Name} ${b.Account_No || ''}<br><span class="text-xs text-gray-400">${b.Account_Type} ${b.Branch ? '· '+b.Branch : ''}</span></span><span class="detail-value">${fmt(opening)}</span></div>`;
+    });
+  } else if (type === 'od') {
+    title = '📊 วงเงิน OD คงเหลือ';
+    body = `<div class="detail-row"><span class="detail-label">วงเงิน OD ทั้งหมด</span><span class="detail-value">${fmt(kpis.odLimit)}</span></div>
+      <div class="detail-row"><span class="detail-label">ใช้ไปแล้ว</span><span class="detail-value text-orange-600">${fmt(kpis.odUsed)}</span></div>
+      <div class="detail-row"><span class="detail-label">คงเหลือ</span><span class="detail-value text-green-600 text-lg font-bold">${fmt(kpis.odRemaining)}</span></div>`;
+    allBanks.filter(b => parseFloat(b.OD_Limit) > 0).forEach(b => {
+      body += `<div class="mt-3 mb-1 text-sm font-semibold text-gray-500">${b.Bank_Name} ${b.Account_No}</div>
+        <div class="detail-row"><span class="detail-label">วงเงิน</span><span class="detail-value">${fmt(b.OD_Limit)}</span></div>
+        <div class="detail-row"><span class="detail-label">ใช้ไป</span><span class="detail-value text-orange-600">${fmt(b.OD_Opening_Used)}</span></div>`;
+    });
+  } else if (type === 'ar') {
+    title = '💰 ลูกหนี้ค้างชำระ';
+    const arItems = allTxns.filter(t => t.Transaction_Type === 'invoice_insurance' && t.Payment_Status === 'pending');
+    const byContact = {};
+    arItems.forEach(t => { byContact[t.Contact_Name || 'ไม่ระบุ'] = (byContact[t.Contact_Name || 'ไม่ระบุ'] || 0) + (parseFloat(t.Debit_Amount) || 0); });
+    body = `<div class="detail-row"><span class="detail-label">ยอดรวม</span><span class="detail-value text-blue-600">${fmt(kpis.arTotal)}</span></div><div class="mt-3 mb-2 text-sm font-semibold text-gray-500">แยกตามบริษัทประกันภัย:</div>`;
+    Object.entries(byContact).sort((a,b) => b[1]-a[1]).forEach(([name, amt]) => {
+      body += `<div class="detail-row"><span class="detail-label">${name}</span><span class="detail-value">${fmt(amt)}</span></div>`;
+    });
+    const now = new Date();
+    let b030 = 0, b3160 = 0, b60p = 0;
+    arItems.forEach(t => {
+      const due = t.Due_Date ? new Date(t.Due_Date) : null;
+      const days = due ? Math.floor((now - due) / 86400000) : 0;
+      const a = parseFloat(t.Debit_Amount) || 0;
+      if (days <= 30) b030 += a; else if (days <= 60) b3160 += a; else b60p += a;
+    });
+    body += `<div class="mt-4 mb-2 text-sm font-semibold text-gray-500">อายุหนี้:</div>
+      <div class="detail-row"><span class="detail-label">🟢 0-30 วัน</span><span class="detail-value">${fmt(b030)}</span></div>
+      <div class="detail-row"><span class="detail-label">🟡 31-60 วัน</span><span class="detail-value">${fmt(b3160)}</span></div>
+      <div class="detail-row"><span class="detail-label">🔴 เกิน 60 วัน</span><span class="detail-value">${fmt(b60p)}</span></div>`;
+    body += `<div class="mt-4"><button class="btn-primary w-full" onclick="closeModal('modal-kpi');switchTab('ar')">ดูรายการทั้งหมด →</button></div>`;
+  } else if (type === 'ap') {
+    title = '💳 เจ้าหนี้ค้างจ่าย';
+    const apItems = allTxns.filter(t => t.Transaction_Type === 'bill_payable' && t.Payment_Status === 'pending');
+    const byVendor = {};
+    apItems.forEach(t => { byVendor[t.Contact_Name || 'ไม่ระบุ'] = (byVendor[t.Contact_Name || 'ไม่ระบุ'] || 0) + (parseFloat(t.Credit_Amount) || 0); });
+    body = `<div class="detail-row"><span class="detail-label">ยอดรวม</span><span class="detail-value text-red-600">${fmt(kpis.apTotal)}</span></div><div class="mt-3 mb-2 text-sm font-semibold text-gray-500">แยกตามร้านค้า:</div>`;
+    Object.entries(byVendor).sort((a,b) => b[1]-a[1]).forEach(([name, amt]) => {
+      body += `<div class="detail-row"><span class="detail-label">${name}</span><span class="detail-value">${fmt(amt)}</span></div>`;
+    });
+    body += `<div class="mt-4"><button class="btn-primary w-full" onclick="closeModal('modal-kpi');switchTab('ap')">ดูรายการทั้งหมด →</button></div>`;
+  }
+  document.getElementById('modal-kpi-title').textContent = title;
+  document.getElementById('modal-kpi-body').innerHTML = body;
+  openModal('modal-kpi');
+}
+
+// ─── Calendar ───
+function renderCalendar() {
+  const y = currentMonth.getFullYear(), m = currentMonth.getMonth();
+  const first = new Date(y, m, 1).getDay();
+  const days = new Date(y, m + 1, 0).getDate();
+  document.getElementById('cal-title').textContent = `${thaiMonths[m]} ${y + 543}`;
+  let html = '';
+  for (let i = 0; i < first; i++) html += '<div class="cal-cell"></div>';
+  for (let d = 1; d <= days; d++) {
+    const ds = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const dayTxns = allTxns.filter(t => t.Transaction_Date && t.Transaction_Date.toString().substring(0,10) === ds);
+    let tags = '';
+    let inc = 0, exp = 0;
+    dayTxns.forEach(t => {
+      const type = t.Transaction_Type || '';
+      const dr = parseFloat(t.Debit_Amount) || 0;
+      if (type.startsWith('receipt') || type === 'payment_received') inc += dr;
+      if (type.startsWith('payment_') && type !== 'payment_received') exp += parseFloat(t.Credit_Amount) || 0;
+    });
+    if (inc > 0) tags += `<div class="cal-tag bg-green-100 text-green-700">+${(inc/1000).toFixed(0)}K</div>`;
+    if (exp > 0) tags += `<div class="cal-tag bg-red-100 text-red-700">-${(exp/1000).toFixed(0)}K</div>`;
+    const isToday = ds === new Date().toISOString().split('T')[0] ? 'ring-2 ring-blue-400' : '';
+    html += `<div class="cal-cell ${isToday}" onclick="openDayModal('${ds}')"><div class="font-medium text-sm">${d}</div>${tags}</div>`;
+  }
+  document.getElementById('cal-grid').innerHTML = html;
+}
+function changeMonth(dir) { currentMonth.setMonth(currentMonth.getMonth() + dir); renderCalendar(); }
+
+function openDayModal(ds) {
+  const dayTxns = allTxns.filter(t => t.Transaction_Date && t.Transaction_Date.toString().substring(0,10) === ds);
+  let html = '';
+  if (!dayTxns.length) { html = '<p class="text-gray-500 text-sm">ไม่มีรายการในวันนี้</p>'; }
+  else {
+    dayTxns.forEach(t => {
+      const isIncome = (t.Transaction_Type || '').startsWith('receipt') || (t.Transaction_Type || '').startsWith('invoice');
+      const color = isIncome ? 'text-green-600' : 'text-red-600';
+      const amt = parseFloat(isIncome ? t.Debit_Amount : t.Credit_Amount) || 0;
+      html += `<div class="breakdown-item" onclick="closeModal('modal-all');openTxnModal('${t.Transaction_ID}')">
+        <div><div class="font-medium text-sm">${t.Description || t.Transaction_Type}</div><div class="text-xs text-gray-400">${t.Document_No || '-'}</div></div>
+        <span class="font-bold ${color}">${isIncome?'+':'−'}${fmt(amt)}</span></div>`;
+    });
+  }
+  document.getElementById('modal-all-title').textContent = `รายการวันที่ ${fmtDate(ds)}`;
+  document.getElementById('modal-all-body').innerHTML = html;
+  openModal('modal-all');
+}
+
+// ─── Recent Transactions ───
+function renderRecent() {
+  const recent = allTxns.slice(-5).reverse();
+  let html = '';
+  if (!recent.length) { html = '<p class="text-gray-400 text-sm">ยังไม่มีรายการ</p>'; }
+  else {
+    recent.forEach(t => {
+      const isIncome = (t.Transaction_Type || '').startsWith('receipt') || (t.Transaction_Type || '').startsWith('invoice');
+      const icon = isIncome ? '💰' : '📦';
+      const color = isIncome ? 'text-green-600' : 'text-red-600';
+      const amt = parseFloat(isIncome ? t.Debit_Amount : t.Credit_Amount) || 0;
+      html += `<div class="flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 cursor-pointer" onclick="openTxnModal('${t.Transaction_ID}')">
+        <div class="flex items-center gap-3"><div class="text-2xl">${icon}</div><div>
+          <div class="font-medium text-sm">${t.Description || t.Transaction_Type}</div>
+          <div class="text-xs text-gray-400">${t.Document_No || '-'} · ${fmtDate(t.Transaction_Date)}</div>
+        </div></div>
+        <span class="font-bold ${color}">${isIncome?'+':'−'}${fmt(amt)}</span></div>`;
+    });
+  }
+  document.getElementById('recent-list').innerHTML = html;
+}
+
+// ─── Transaction Detail Modal ───
+function openTxnModal(txnID) {
+  const t = allTxns.find(x => x.Transaction_ID === txnID);
+  if (!t) return;
+  selectedTxnID = txnID;
+  const isIncome = (t.Transaction_Type || '').startsWith('receipt') || (t.Transaction_Type || '').startsWith('invoice');
+  const amt = parseFloat(isIncome ? t.Debit_Amount : t.Credit_Amount) || 0;
+  const typeLabels = {
+    invoice_insurance: '📋 สร้างใบแจ้งหนี้ประกัน',
+    receipt_walkin: '🤝 รับเงินสดลูกค้าหน้าร้าน',
+    receipt_excess: '💵 รับเงินส่วนเกิน (Excess)',
+    bill_payable: '📋 สร้างบิลเจ้าหนี้',
+    payment_parts: '🔩 จ่ายค่าอะไหล่',
+    payment_salary: '👷 จ่ายเงินเดือน',
+    payment_expense: '📦 ค่าใช้จ่ายอื่นๆ',
+    payment_received: '💰 รับชำระ AR',
+    payment_made: '💳 จ่ายชำระ AP'
+  };
+  const statusBadge = t.Payment_Status === 'received' || t.Payment_Status === 'paid'
+    ? '<span class="badge badge-green">✅ ชำระแล้ว</span>'
+    : '<span class="badge badge-yellow">⏳ ค้างชำระ</span>';
+  let html = `
+    <div class="detail-row"><span class="detail-label">รหัส</span><span class="detail-value font-mono">${t.Transaction_ID}</span></div>
+    <div class="detail-row"><span class="detail-label">ประเภท</span><span class="detail-value">${typeLabels[t.Transaction_Type] || t.Transaction_Type}</span></div>
+    <div class="detail-row"><span class="detail-label">ผู้ติดต่อ</span><span class="detail-value">${t.Contact_Name || '-'}</span></div>
+    <div class="detail-row"><span class="detail-label">วันที่</span><span class="detail-value">${fmtDate(t.Transaction_Date)}</span></div>
+    <div class="detail-row"><span class="detail-label">เลขที่เอกสาร</span><span class="detail-value">${t.Document_No || '-'}</span></div>`;
+  if (isIncome) {
+    html += `<div class="detail-row"><span class="detail-label">ค่าแรง</span><span class="detail-value">${fmt(t.Labor_Amount)}</span></div>
+      <div class="detail-row"><span class="detail-label">ค่าอะไหล่</span><span class="detail-value">${fmt(t.Parts_Amount)}</span></div>`;
+  }
+  html += `<div class="detail-row"><span class="detail-label">VAT</span><span class="detail-value">${fmt(t.VAT_Amount)}</span></div>
+    <div class="detail-row"><span class="detail-label">WHT</span><span class="detail-value">${fmt(t.WHT_Amount)}</span></div>
+    <div class="detail-row"><span class="detail-label">ยอดรวม</span><span class="detail-value text-lg font-bold ${isIncome ? 'text-green-600' : 'text-red-600'}">${fmt(amt)}</span></div>
+    <div class="detail-row"><span class="detail-label">สถานะ</span><span class="detail-value">${statusBadge}</span></div>
+    <div class="detail-row"><span class="detail-label">บัญชีธนาคาร</span><span class="detail-value">${t.Bank_Account || '-'}</span></div>`;
+  if (t.Due_Date) html += `<div class="detail-row"><span class="detail-label">ครบกำหนด</span><span class="detail-value">${fmtDate(t.Due_Date)}</span></div>`;
+  if (t.Attachment_URL) html += `<div class="detail-row"><span class="detail-label">ไฟล์แนบ</span><span class="detail-value"><a href="${t.Attachment_URL}" target="_blank" class="text-blue-600 hover:underline">📎 ดูไฟล์</a></span></div>`;
+  html += `<div class="detail-row"><span class="detail-label">คำอธิบาย</span><span class="detail-value">${t.Description || '-'}</span></div>`;
+  document.getElementById('modal-txn-body').innerHTML = html;
+  openModal('modal-txn');
+}
+
+function editTxn() { closeModal('modal-txn'); toast('⚠️ ฟีเจอร์แก้ไข - จะเพิ่มในรอบที่ 3', '#FF9500'); }
+function confirmDeleteTxn() { closeModal('modal-txn'); openModal('modal-delete'); }
+async function doDeleteTxn() {
+  const res = await apiCall('deleteTransaction', { transactionID: selectedTxnID });
+  closeModal('modal-delete');
+  if (res && res.success) { toast('✅ ลบรายการเรียบร้อย', '#34C759'); loadData(); }
+}
+
+function openAllTxnModal() {
+  let html = '';
+  if (!allTxns.length) { html = '<p class="text-gray-400 text-sm">ยังไม่มีรายการ</p>'; }
+  else {
+    allTxns.slice().reverse().forEach(t => {
+      const isIncome = (t.Transaction_Type || '').startsWith('receipt') || (t.Transaction_Type || '').startsWith('invoice');
+      const color = isIncome ? 'text-green-600' : 'text-red-600';
+      const amt = parseFloat(isIncome ? t.Debit_Amount : t.Credit_Amount) || 0;
+      html += `<div class="breakdown-item" onclick="closeModal('modal-all');openTxnModal('${t.Transaction_ID}')">
+        <div><div class="font-medium text-sm">${t.Description || t.Transaction_Type}</div><div class="text-xs text-gray-400">${t.Document_No || '-'} · ${fmtDate(t.Transaction_Date)}</div></div>
+        <span class="font-bold ${color}">${isIncome?'+':'−'}${fmt(amt)}</span></div>`;
+    });
+  }
+  document.getElementById('modal-all-title').textContent = 'รายการทั้งหมด';
+  document.getElementById('modal-all-body').innerHTML = html;
+  openModal('modal-all');
+}
+
+// ─── Reports ───
+function setRange(r) {
+  const now = new Date();
+  let s, e = now;
+  if (r === 'today') s = now;
+  else if (r === 'week') { s = new Date(now); s.setDate(now.getDate() - now.getDay()); }
+  else if (r === 'month') s = new Date(now.getFullYear(), now.getMonth(), 1);
+  else if (r === 'year') s = new Date(now.getFullYear(), 0, 1);
+  document.getElementById('rpt-start').value = s.toISOString().split('T')[0];
+  document.getElementById('rpt-end').value = e.toISOString().split('T')[0];
+  loadReports();
+}
+
+function loadReports() {
+  const s = document.getElementById('rpt-start').value;
+  const e = document.getElementById('rpt-end').value;
+  const filtered = allTxns.filter(t => {
+    const d = t.Transaction_Date ? t.Transaction_Date.toString().substring(0,10) : '';
+    return d >= s && d <= e;
+  });
+  let income = 0, expense = 0;
+  const incomeByGroup = { insurance: {}, additional: {}, walkin: {} };
+  const expenseByMain = {};
+
+  filtered.forEach(t => {
+    const type = t.Transaction_Type || '';
+    const dr = parseFloat(t.Debit_Amount) || 0;
+    const cr = parseFloat(t.Credit_Amount) || 0;
+
+    if (type === 'invoice_insurance' || type === 'payment_received') {
+      income += dr;
+      const name = t.Contact_Name || 'ไม่ระบุ';
+      incomeByGroup.insurance[name] = (incomeByGroup.insurance[name] || 0) + dr;
+    } else if (type === 'receipt_walkin') {
+      income += dr;
+      const labor = parseFloat(t.Labor_Amount) || 0;
+      const parts = parseFloat(t.Parts_Amount) || 0;
+      incomeByGroup.walkin['ค่าแรง (ลูกค้าหน้าร้าน)'] = (incomeByGroup.walkin['ค่าแรง (ลูกค้าหน้าร้าน)'] || 0) + labor;
+      incomeByGroup.walkin['ค่าอะไหล่ (ลูกค้าหน้าร้าน)'] = (incomeByGroup.walkin['ค่าอะไหล่ (ลูกค้าหน้าร้าน)'] || 0) + parts;
+    } else if (type === 'receipt_excess') {
+      income += dr;
+      const desc = t.Description || 'Excess';
+      incomeByGroup.additional[desc] = (incomeByGroup.additional[desc] || 0) + dr;
+    } else if (type === 'bill_payable' || type === 'payment_made') {
+      if (type === 'payment_made') expense += cr;
+    } else if (type === 'payment_parts' || type === 'payment_salary' || type === 'payment_expense') {
+      expense += cr;
+    }
+
+    if (type.startsWith('payment_') && type !== 'payment_received' && type !== 'payment_made') {
+      const catID = t.Category_ID || '';
+      const cat = allCategories.find(c => c.Category_ID === catID);
+      let mainName = 'อื่นๆ';
+      if (cat) {
+        if (cat.Category_Type === 'Sub') {
+          const parent = allCategories.find(c => c.Category_ID === cat.Parent_ID);
+          mainName = parent ? parent.Category_Name : cat.Category_Name;
+        } else {
+          mainName = cat.Category_Name;
+        }
+      } else {
+        const drCode = String(t.Account_Code_Debit || '');
+        if (drCode.startsWith('51')) mainName = 'ต้นทุนสินค้าและบริการ';
+        else if (drCode.startsWith('52')) mainName = 'ค่าบุคลากร';
+        else if (drCode.startsWith('53')) mainName = 'ค่าใช้จ่ายในการดำเนินการ';
+        else if (drCode.startsWith('54')) mainName = 'ค่าสาธารณูปโภค';
+        else if (drCode.startsWith('55')) mainName = 'ค่าการตลาด';
+        else if (drCode.startsWith('56')) mainName = 'ค่ายานพาหนะ';
+        else if (drCode.startsWith('57')) mainName = 'ภาษีและค่าธรรมเนียม';
+        else if (drCode.startsWith('58')) mainName = 'ค่าประกันภัย';
+        else if (drCode.startsWith('59')) mainName = 'ค่าใช้จ่ายอื่นๆ';
+      }
+      const subName = t.Account_Name_Debit || 'ไม่ระบุ';
+      if (!expenseByMain[mainName]) expenseByMain[mainName] = {};
+      expenseByMain[mainName][subName] = (expenseByMain[mainName][subName] || 0) + cr;
+    }
+  });
+
+  const profit = income - expense;
+  const bankBal = kpis.bankBalance || 0;
+  document.getElementById('rpt-income').textContent = fmt(income);
+  document.getElementById('rpt-expense').textContent = fmt(expense);
+  document.getElementById('rpt-profit').textContent = fmt(profit);
+  document.getElementById('rpt-profit').className = 'text-2xl font-bold ' + (profit >= 0 ? 'text-green-600' : 'text-red-600');
+  document.getElementById('rpt-cash').textContent = fmt(bankBal);
+
+  renderIncomeTree(incomeByGroup);
+  renderExpenseTree(expenseByMain, filtered);
+}
+
+function renderIncomeTree(groups) {
+  let html = '';
+  const sections = [
+    { key: 'insurance', label: 'ค่าสินไหมทดแทน (Insurance Claim)', color: '#3B82F6' },
+    { key: 'additional', label: 'รายได้จากลูกค้าประกันเพิ่มเติม', color: '#8B5CF6' },
+    { key: 'walkin', label: 'รายได้จากลูกค้าหน้าร้าน', color: '#10B981' }
+  ];
+  sections.forEach(sec => {
+    const items = groups[sec.key] || {};
+    const total = Object.values(items).reduce((a, b) => a + b, 0);
+    if (total === 0) return;
+    const id = 'inc-' + sec.key;
+    html += `<div class="tree-main" onclick="toggleTree('${id}')" style="border-left:4px solid ${sec.color}">
+      <div><span class="mr-2" id="${id}-arrow">▶</span>${sec.label}</div><span class="text-green-600 font-bold">${fmt(total)}</span></div>`;
+    html += `<div class="tree-children" id="${id}">`;
+    Object.entries(items).sort((a,b) => b[1]-a[1]).forEach(([name, amt]) => {
+      if (amt === 0) return;
+      html += `<div class="tree-sub" onclick="drillIncome('${sec.key}','${name.replace(/'/g,"\\'")}')">
+        <span class="text-sm">${name}</span><span class="text-green-600 font-medium text-sm">${fmt(amt)}</span></div>`;
+    });
+    html += '</div>';
+  });
+  document.getElementById('income-tree').innerHTML = html || '<p class="text-gray-400 text-sm">ไม่มีข้อมูล</p>';
+}
+
+function renderExpenseTree(byMain, filtered) {
+  let html = '';
+  const mainCats = allCategories.filter(c => c.Category_Type === 'Main').sort((a,b) => (a.Display_Order||99) - (b.Display_Order||99));
+  const usedMains = new Set(Object.keys(byMain));
+
+  mainCats.forEach(mc => {
+    const items = byMain[mc.Category_Name] || {};
+    const total = Object.values(items).reduce((a, b) => a + b, 0);
+    if (total === 0 && !usedMains.has(mc.Category_Name)) return;
+    const id = 'exp-' + mc.Category_ID;
+    html += `<div class="tree-main" onclick="toggleTree('${id}')" style="border-left:4px solid ${mc.Display_Color || '#6B7280'}">
+      <div><span class="mr-2" id="${id}-arrow">▶</span>${mc.Category_Name}</div><span class="text-red-600 font-bold">${fmt(total)}</span></div>`;
+    html += `<div class="tree-children" id="${id}">`;
+    Object.entries(items).sort((a,b) => b[1]-a[1]).forEach(([name, amt]) => {
+      if (amt === 0) return;
+      html += `<div class="tree-sub" onclick="drillExpense('${mc.Category_Name.replace(/'/g,"\\'")}','${name.replace(/'/g,"\\'")}')">
+        <span class="text-sm">${name}</span><span class="text-red-600 font-medium text-sm">${fmt(amt)}</span></div>`;
+    });
+    html += '</div>';
+  });
+
+  Object.keys(byMain).forEach(mainName => {
+    if (mainCats.some(mc => mc.Category_Name === mainName)) return;
+    const items = byMain[mainName];
+    const total = Object.values(items).reduce((a, b) => a + b, 0);
+    if (total === 0) return;
+    const id = 'exp-other-' + mainName.replace(/\s/g, '');
+    html += `<div class="tree-main" onclick="toggleTree('${id}')" style="border-left:4px solid #9CA3AF">
+      <div><span class="mr-2" id="${id}-arrow">▶</span>${mainName}</div><span class="text-red-600 font-bold">${fmt(total)}</span></div>`;
+    html += `<div class="tree-children" id="${id}">`;
+    Object.entries(items).sort((a,b) => b[1]-a[1]).forEach(([name, amt]) => {
+      html += `<div class="tree-sub" onclick="drillExpense('${mainName.replace(/'/g,"\\'")}','${name.replace(/'/g,"\\'")}')">
+        <span class="text-sm">${name}</span><span class="text-red-600 font-medium text-sm">${fmt(amt)}</span></div>`;
+    });
+    html += '</div>';
+  });
+  document.getElementById('expense-tree').innerHTML = html || '<p class="text-gray-400 text-sm">ไม่มีข้อมูล</p>';
+}
+
+function toggleTree(id) {
+  const el = document.getElementById(id);
+  const arrow = document.getElementById(id + '-arrow');
+  if (el) {
+    el.classList.toggle('open');
+    if (arrow) arrow.textContent = el.classList.contains('open') ? '▼' : '▶';
+  }
+}
+
+// ─── Drill-down Modals ───
+function drillIncome(group, name) {
+  const s = document.getElementById('rpt-start').value;
+  const e = document.getElementById('rpt-end').value;
+  let matchTxns = [];
+  if (group === 'insurance') {
+    matchTxns = allTxns.filter(t => {
+      const d = (t.Transaction_Date||'').toString().substring(0,10);
+      return d >= s && d <= e && (t.Transaction_Type === 'invoice_insurance' || t.Transaction_Type === 'payment_received') && t.Contact_Name === name;
+    });
+  } else {
+    matchTxns = allTxns.filter(t => {
+      const d = (t.Transaction_Date||'').toString().substring(0,10);
+      return d >= s && d <= e && (t.Transaction_Type === 'receipt_walkin' || t.Transaction_Type === 'receipt_excess') && (t.Description||'').includes(name);
+    });
+  }
+  showDrillModal(name, matchTxns, true);
+}
+
+function drillExpense(mainName, subName) {
+  const s = document.getElementById('rpt-start').value;
+  const e = document.getElementById('rpt-end').value;
+  const matchTxns = allTxns.filter(t => {
+    const d = (t.Transaction_Date||'').toString().substring(0,10);
+    return d >= s && d <= e && (t.Account_Name_Debit === subName);
+  });
+  showDrillModal(subName, matchTxns, false);
+}
+
+function showDrillModal(title, txns, isIncome) {
+  const total = txns.reduce((a, t) => a + (parseFloat(isIncome ? t.Debit_Amount : t.Credit_Amount) || 0), 0);
+  let html = `<div class="flex justify-between items-center mb-4">
+    <div><span class="text-sm text-gray-500">ยอดรวม</span><div class="text-xl font-bold ${isIncome?'text-green-600':'text-red-600'}">${fmt(total)}</div></div>
+    <span class="badge badge-gray">${txns.length} รายการ</span></div>`;
+  if (txns.length) {
+    html += '<div class="border rounded-xl overflow-hidden"><table class="w-full text-sm"><thead><tr class="bg-gray-50"><th class="text-left p-3">วันที่</th><th class="text-left p-3">เอกสาร</th><th class="text-left p-3">ผู้ติดต่อ</th><th class="text-right p-3">ยอดเงิน</th></tr></thead><tbody>';
+    txns.forEach(t => {
+      const amt = parseFloat(isIncome ? t.Debit_Amount : t.Credit_Amount) || 0;
+      html += `<tr class="border-t hover:bg-gray-50 cursor-pointer" onclick="closeModal('modal-drill');openTxnModal('${t.Transaction_ID}')">
+        <td class="p-3">${fmtDate(t.Transaction_Date)}</td><td class="p-3">${t.Document_No||'-'}</td>
+        <td class="p-3">${t.Contact_Name||'-'}</td><td class="p-3 text-right font-medium ${isIncome?'text-green-600':'text-red-600'}">${fmt(amt)}</td></tr>`;
+    });
+    html += '</tbody></table></div>';
+  } else {
+    html += '<p class="text-gray-400 text-sm">ไม่มีรายการ</p>';
+  }
+  document.getElementById('modal-drill-title').textContent = title;
+  document.getElementById('modal-drill-body').innerHTML = html;
+  openModal('modal-drill');
+}
+
+// ─── Settings ───
+function saveGasUrl() {
+  const url = document.getElementById('gas-url').value.trim();
+  if (!url) { toast('⚠️ กรุณากรอก URL', '#FF9500'); return; }
+  localStorage.setItem('GAS_URL', url); GAS_URL = url;
+  toast('✅ บันทึก URL สำเร็จ', '#34C759');
+}
+async function testConn() {
+  const el = document.getElementById('conn-status');
+  el.style.display = 'block'; el.className = 'mt-3 p-3 rounded-lg text-sm bg-blue-50 text-blue-700'; el.textContent = '🔄 กำลังทดสอบ...';
+  const d = await apiCall('getInitialData');
+  if (d && d.success !== false) {
+    el.className = 'mt-3 p-3 rounded-lg text-sm bg-green-50 text-green-700'; el.textContent = '✅ เชื่อมต่อสำเร็จ!';
+    loadData();
+  } else {
+    el.className = 'mt-3 p-3 rounded-lg text-sm bg-red-50 text-red-700'; el.textContent = '❌ เชื่อมต่อไม่ได้';
+  }
+}
+
+// ─── Modal / Toast Helpers ───
+function openModal(id) { document.getElementById(id).classList.add('show'); }
+function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+function toast(msg, bg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.style.background = bg || '#333'; t.className = 'toast show';
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// ═══════════════════ AR/AP TAB ═══════════════════
+
+function renderARTable() {
+  const contactF = document.getElementById('ar-filter-contact').value;
+  const statusF = document.getElementById('ar-filter-status').value;
+  const items = allTxns.filter(t => t.Transaction_Type === 'invoice_insurance'
+    && (!contactF || t.Contact_ID === contactF)
+    && (!statusF || t.Payment_Status === statusF));
+  const now = new Date();
+  let total = 0, over30 = 0, over60 = 0;
+  let html = '';
+  items.forEach(t => {
+    const amt = parseFloat(t.Debit_Amount) || 0;
+    total += amt;
+    const due = t.Due_Date ? new Date(t.Due_Date) : null;
+    const days = due ? Math.floor((now - due) / 86400000) : 0;
+    let badge = '<span class="badge badge-green">ปกติ</span>';
+    if (t.Payment_Status === 'received') badge = '<span class="badge badge-green">✅ ชำระแล้ว</span>';
+    else if (days > 60) { badge = '<span class="badge badge-red">เกิน 60 วัน</span>'; over60++; }
+    else if (days > 30) { badge = '<span class="badge badge-yellow">เกิน 30 วัน</span>'; over30++; }
+    else if (days > 0) { badge = `<span class="badge badge-yellow">ค้าง ${days} วัน</span>`; over30++; }
+    html += `<tr class="border-t hover:bg-gray-50 cursor-pointer" onclick="openARDetail('${t.Transaction_ID}')">
+      <td class="p-3">${fmtDate(t.Transaction_Date)}</td><td class="p-3 font-mono">${t.Document_No||'-'}</td>
+      <td class="p-3">${t.Contact_Name||'-'}</td><td class="p-3">${due ? fmtDate(due) : '-'}</td>
+      <td class="p-3 text-right font-bold text-blue-600">${fmt(amt)}</td><td class="p-3">${badge}</td></tr>`;
+  });
+  if (!items.length) html = '<tr><td colspan="6" class="p-6 text-center text-gray-400">ไม่มีรายการ</td></tr>';
+  document.getElementById('ar-tbody').innerHTML = html;
+  document.getElementById('ar-total').textContent = fmt(total);
+  document.getElementById('ar-over30').textContent = over30 + ' รายการ';
+  document.getElementById('ar-over60').textContent = over60 + ' รายการ';
+}
+
+function renderAPTable() {
+  const contactF = document.getElementById('ap-filter-contact').value;
+  const statusF = document.getElementById('ap-filter-status').value;
+  const items = allTxns.filter(t => t.Transaction_Type === 'bill_payable'
+    && (!contactF || t.Contact_ID === contactF)
+    && (!statusF || t.Payment_Status === statusF));
+  const now = new Date();
+  let total = 0, due7 = 0, overdue = 0;
+  let html = '';
+  items.forEach(t => {
+    const amt = parseFloat(t.Credit_Amount) || 0;
+    total += amt;
+    const due = t.Due_Date ? new Date(t.Due_Date) : null;
+    const days = due ? Math.floor((now - due) / 86400000) : 0;
+    let badge = '<span class="badge badge-green">ปกติ</span>';
+    if (t.Payment_Status === 'paid') badge = '<span class="badge badge-green">✅ จ่ายแล้ว</span>';
+    else if (days > 0) { badge = `<span class="badge badge-red">เกิน ${days} วัน</span>`; overdue++; }
+    else if (days >= -7) { badge = '<span class="badge badge-yellow">ครบกำหนดเร็วๆ นี้</span>'; due7++; }
+    html += `<tr class="border-t hover:bg-gray-50 cursor-pointer" onclick="openAPDetail('${t.Transaction_ID}')">
+      <td class="p-3">${fmtDate(t.Transaction_Date)}</td><td class="p-3 font-mono">${t.Document_No||'-'}</td>
+      <td class="p-3">${t.Contact_Name||'-'}</td><td class="p-3">${due ? fmtDate(due) : '-'}</td>
+      <td class="p-3 text-right font-bold text-red-600">${fmt(amt)}</td><td class="p-3">${badge}</td></tr>`;
+  });
+  if (!items.length) html = '<tr><td colspan="6" class="p-6 text-center text-gray-400">ไม่มีรายการ</td></tr>';
+  document.getElementById('ap-tbody').innerHTML = html;
+  document.getElementById('ap-total').textContent = fmt(total);
+  document.getElementById('ap-due7').textContent = due7 + ' รายการ';
+  document.getElementById('ap-overdue').textContent = overdue + ' รายการ';
+}
+
+function populateARAPFilters() {
+  const insurers = [...new Set(allTxns.filter(t => t.Transaction_Type === 'invoice_insurance').map(t => t.Contact_Name))];
+  const vendors = [...new Set(allTxns.filter(t => t.Transaction_Type === 'bill_payable').map(t => t.Contact_Name))];
+  let arOpts = '<option value="">ทุกบริษัท</option>';
+  insurers.forEach(n => { const c = allTxns.find(t => t.Contact_Name === n); arOpts += `<option value="${c?.Contact_ID||''}">${n}</option>`; });
+  document.getElementById('ar-filter-contact').innerHTML = arOpts;
+  let apOpts = '<option value="">ทุกร้าน</option>';
+  vendors.forEach(n => { const c = allTxns.find(t => t.Contact_Name === n); apOpts += `<option value="${c?.Contact_ID||''}">${n}</option>`; });
+  document.getElementById('ap-filter-contact').innerHTML = apOpts;
+}
+
+function openARDetail(txnID) {
+  const t = allTxns.find(x => x.Transaction_ID === txnID);
+  if (!t) return;
+  selectedTxnID = txnID;
+  const due = t.Due_Date ? new Date(t.Due_Date) : null;
+  const days = due ? Math.floor((new Date() - due) / 86400000) : 0;
+  const statusBadge = t.Payment_Status === 'received' ? '<span class="badge badge-green">✅ ชำระแล้ว</span>' : days > 60 ? '<span class="badge badge-red">🔴 เกิน 60 วัน</span>' : days > 30 ? '<span class="badge badge-yellow">🟡 เกิน 30 วัน</span>' : '<span class="badge badge-blue">⏳ ค้างชำระ</span>';
+  document.getElementById('modal-ar-detail-body').innerHTML = `
+    <div class="detail-row"><span class="detail-label">เลขที่</span><span class="detail-value font-mono">${t.Document_No||t.Transaction_ID}</span></div>
+    <div class="detail-row"><span class="detail-label">ลูกค้า</span><span class="detail-value">${t.Contact_Name||'-'}</span></div>
+    <div class="detail-row"><span class="detail-label">วันที่ออกบิล</span><span class="detail-value">${fmtDate(t.Transaction_Date)}</span></div>
+    <div class="detail-row"><span class="detail-label">ครบกำหนด</span><span class="detail-value">${due ? fmtDate(due) : '-'}</span></div>
+    <div class="detail-row"><span class="detail-label">สถานะ</span><span class="detail-value">${statusBadge}</span></div>
+    <div class="detail-row"><span class="detail-label">ค่าแรง</span><span class="detail-value">${fmt(t.Labor_Amount)}</span></div>
+    <div class="detail-row"><span class="detail-label">ค่าอะไหล่</span><span class="detail-value">${fmt(t.Parts_Amount)}</span></div>
+    <div class="detail-row"><span class="detail-label">VAT</span><span class="detail-value">${fmt(t.VAT_Amount)}</span></div>
+    <div class="detail-row"><span class="detail-label">ยอดรวม</span><span class="detail-value text-lg font-bold text-blue-600">${fmt(t.Debit_Amount)}</span></div>
+    ${t.Attachment_URL ? `<div class="detail-row"><span class="detail-label">ไฟล์แนบ</span><span class="detail-value"><a href="${t.Attachment_URL}" target="_blank" class="text-blue-600">📎 ดูไฟล์</a></span></div>` : ''}`;
+  openModal('modal-ar-detail');
+}
+
+function openAPDetail(txnID) {
+  const t = allTxns.find(x => x.Transaction_ID === txnID);
+  if (!t) return;
+  selectedTxnID = txnID;
+  const due = t.Due_Date ? new Date(t.Due_Date) : null;
+  const days = due ? Math.floor((new Date() - due) / 86400000) : 0;
+  const statusBadge = t.Payment_Status === 'paid' ? '<span class="badge badge-green">✅ จ่ายแล้ว</span>' : days > 0 ? `<span class="badge badge-red">🔴 เกิน ${days} วัน</span>` : '<span class="badge badge-yellow">⏳ ค้างจ่าย</span>';
+  document.getElementById('modal-ap-detail-body').innerHTML = `
+    <div class="detail-row"><span class="detail-label">เลขที่</span><span class="detail-value font-mono">${t.Document_No||t.Transaction_ID}</span></div>
+    <div class="detail-row"><span class="detail-label">เจ้าหนี้</span><span class="detail-value">${t.Contact_Name||'-'}</span></div>
+    <div class="detail-row"><span class="detail-label">วันที่รับบิล</span><span class="detail-value">${fmtDate(t.Transaction_Date)}</span></div>
+    <div class="detail-row"><span class="detail-label">ครบกำหนด</span><span class="detail-value">${due ? fmtDate(due) : '-'}</span></div>
+    <div class="detail-row"><span class="detail-label">สถานะ</span><span class="detail-value">${statusBadge}</span></div>
+    <div class="detail-row"><span class="detail-label">หมวดหมู่</span><span class="detail-value">${t.Account_Name_Debit||'-'}</span></div>
+    <div class="detail-row"><span class="detail-label">ยอดรวม</span><span class="detail-value text-lg font-bold text-red-600">${fmt(t.Credit_Amount)}</span></div>`;
+  openModal('modal-ap-detail');
+}
+
+function editTxnFromAR() { closeModal('modal-ar-detail'); toast('⚠️ ฟีเจอร์แก้ไข - จะเพิ่มในรอบถัดไป', '#FF9500'); }
+function editTxnFromAP() { closeModal('modal-ap-detail'); toast('⚠️ ฟีเจอร์แก้ไข - จะเพิ่มในรอบถัดไป', '#FF9500'); }
+function deleteTxnFromAR() { closeModal('modal-ar-detail'); openModal('modal-delete'); }
+function deleteTxnFromAP() { closeModal('modal-ap-detail'); openModal('modal-delete'); }
+
+// ─── Payment Modal ───
+let paymentMode = '';
+let payOutstandingAmt = 0;
+function openPaymentModal(mode) {
+  paymentMode = mode;
+  closeModal(mode === 'ar' ? 'modal-ar-detail' : 'modal-ap-detail');
+  const t = allTxns.find(x => x.Transaction_ID === selectedTxnID);
+  if (!t) return;
+  payOutstandingAmt = parseFloat(mode === 'ar' ? t.Debit_Amount : t.Credit_Amount) || 0;
+  document.getElementById('modal-pay-title').textContent = mode === 'ar' ? '💰 บันทึกรับชำระเงิน' : '💳 บันทึกจ่ายเงิน';
+  document.getElementById('pay-outstanding').textContent = fmt(payOutstandingAmt);
+  const whtDefault = mode === 'ar' ? Math.round((parseFloat(t.Labor_Amount)||0 + parseFloat(t.Parts_Amount)||0) * 0.03) : 0;
+  document.getElementById('pay-wht').value = mode === 'ar' ? whtDefault : '';
+  document.getElementById('pay-actual').value = '';
+  document.getElementById('pay-notes').value = '';
+  document.getElementById('pay-date').value = new Date().toISOString().split('T')[0];
+  document.getElementById('pay-wht-section').style.display = mode === 'ar' ? 'block' : 'none';
+  let bankOpts = '<option value="1010" data-name="เงินสด">💵 เงินสด</option>';
+  allBanks.forEach(b => { if (b.Account_Type !== 'เงินสด') bankOpts += `<option value="${b.Account_Code}" data-name="${b.Bank_Name} ${b.Account_No}">${'🏦'} ${b.Bank_Name} ${b.Account_No}</option>`; });
+  document.getElementById('pay-bank').innerHTML = bankOpts;
+  calcPaySummary();
+  openModal('modal-payment');
+}
+
+function calcPaySummary() {
+  const wht = parseFloat(document.getElementById('pay-wht').value) || 0;
+  const expected = payOutstandingAmt - wht;
+  document.getElementById('pay-expected').textContent = fmt(expected);
+  if (!document.getElementById('pay-actual').value) document.getElementById('pay-actual').value = expected;
+  const actual = parseFloat(document.getElementById('pay-actual').value) || 0;
+  const bankSel = document.getElementById('pay-bank');
+  const bankName = bankSel.options[bankSel.selectedIndex]?.dataset?.name || '-';
+  let html = '';
+  if (paymentMode === 'ar') {
+    html = `<div class="detail-row"><span class="detail-label">ยอดตามบิล</span><span class="detail-value">${fmt(payOutstandingAmt)}</span></div>`;
+    if (wht > 0) html += `<div class="detail-row"><span class="detail-label">WHT หัก ณ ที่จ่าย</span><span class="detail-value">−${fmt(wht)}</span></div>`;
+    html += `<div class="detail-row"><span class="detail-label">ยอดที่ควรได้</span><span class="detail-value">${fmt(expected)}</span></div>`;
+    html += `<div class="detail-row" style="border-top:2px solid #333;padding-top:8px"><span class="detail-label font-bold">ยอดที่ได้รับจริง</span><span class="detail-value text-green-600 font-bold text-lg">${fmt(actual)}</span></div>`;
+  } else {
+    html = `<div class="detail-row"><span class="detail-label font-bold">จ่ายเงิน</span><span class="detail-value text-red-600 font-bold text-lg">${fmt(actual)}</span></div>`;
+  }
+  html += `<div class="detail-row"><span class="detail-label">${paymentMode==='ar'?'เข้า':'จาก'}บัญชี</span><span class="detail-value">${bankName}</span></div>`;
+  document.getElementById('pay-summary').innerHTML = html;
+}
+
+async function submitPayment() {
+  const actual = parseFloat(document.getElementById('pay-actual').value) || 0;
+  const wht = parseFloat(document.getElementById('pay-wht').value) || 0;
+  const bankSel = document.getElementById('pay-bank');
+  const bankCode = bankSel.value;
+  const bankName = bankSel.options[bankSel.selectedIndex]?.dataset?.name || '';
+  const payDate = document.getElementById('pay-date').value;
+  const notes = document.getElementById('pay-notes').value;
+  const t = allTxns.find(x => x.Transaction_ID === selectedTxnID);
+  const res = await apiCall('recordPayment', {
+    paymentType: paymentMode === 'ar' ? 'ar_receive' : 'ap_pay',
+    linkedTransactionID: selectedTxnID,
+    payAmount: payOutstandingAmt,
+    actualAmount: actual,
+    whtAmount: wht,
+    bankAccountCode: bankCode,
+    bankAccount: bankName,
+    paymentDate: payDate,
+    notes: notes,
+    contactID: t?.Contact_ID || '',
+    contactName: t?.Contact_Name || ''
+  });
+  closeModal('modal-payment');
+  if (res && res.success) {
+    toast('✅ ' + res.message, '#34C759');
+    loadData();
+  }
+}
+
+// ═══════════════════ SMART WIZARD (TAB 5) ═══════════════════
+
+let wzMode = 'income';
+let wzType = '';
+let wzStep = 1;
+
+function switchEntryTab(mode) {
+  wzMode = mode;
+  document.getElementById('et-income').classList.toggle('active', mode === 'income');
+  document.getElementById('et-expense').classList.toggle('active', mode === 'expense');
+  wzReset();
+}
+
+function wzReset() {
+  wzType = '';
+  wzStep = 1;
+  wzRenderStep1();
+  wzGoStep(1);
+}
+
+function wzGoStep(step) {
+  wzStep = step;
+  for (let i = 1; i <= 5; i++) document.getElementById('wz-step-' + i).style.display = i === step ? 'block' : 'none';
+  const dots = document.getElementById('wizard-dots').children;
+  for (let i = 0; i < dots.length; i++) { dots[i].className = 'flex-1 h-1 rounded ' + (i < step ? 'bg-blue-500' : 'bg-gray-200'); }
+  if (step === 2) wzRenderStep2();
+  if (step === 3) wzRenderStep3();
+  if (step === 4) wzRenderStep4();
+}
+
+function wzRenderStep1() {
+  document.getElementById('wz-s1-title').textContent = wzMode === 'income' ? 'เลือกประเภทรายรับ' : 'เลือกประเภทรายจ่าย';
+  const types = wzMode === 'income' ? [
+    { id: 'invoice_insurance', icon: '📋', name: 'สร้างใบแจ้งหนี้บริษัทประกันภัย', desc: 'ออกบิลเคลม → สร้าง AR' },
+    { id: 'receipt_walkin', icon: '🤝', name: 'รับเงินสดลูกค้าหน้าร้าน', desc: 'ได้เงินทันที' },
+    { id: 'receipt_excess', icon: '💵', name: 'รับเงินสดลูกค้าประกันเพิ่มเติม', desc: 'Excess / Deductible' }
+  ] : [
+    { id: 'bill_payable', icon: '📋', name: 'สร้างบิลเจ้าหนี้', desc: 'รับบิล → สร้าง AP' },
+    { id: 'payment_parts', icon: '🔩', name: 'ค่าอะไหล่', desc: 'จ่ายสดทันที' },
+    { id: 'payment_salary', icon: '👷', name: 'จ่ายเงินเดือนพนักงาน', desc: 'จ่ายสดทันที' },
+    { id: 'payment_expense', icon: '📦', name: 'ค่าใช้จ่ายอื่นๆ', desc: 'จ่ายสดทันที' }
+  ];
+  let html = '';
+  types.forEach(t => {
+    html += `<div class="p-5 border-2 rounded-xl cursor-pointer text-center transition hover:border-blue-500 hover:-translate-y-1 hover:shadow-md ${wzType===t.id?'border-blue-500 bg-blue-50':'border-gray-200'}" onclick="wzSelectType('${t.id}',this)">
+      <div class="text-3xl mb-2">${t.icon}</div><div class="font-semibold mb-1">${t.name}</div><div class="text-xs text-gray-500">${t.desc}</div></div>`;
+  });
+  document.getElementById('wz-type-grid').innerHTML = html;
+  document.getElementById('wz-type-grid').className = wzMode === 'expense' ? 'grid grid-cols-4 gap-4' : 'grid grid-cols-3 gap-4';
+  document.getElementById('wz-s1-next').disabled = !wzType;
+}
+
+function wzSelectType(type) {
+  wzType = type;
+  wzRenderStep1();
+  document.getElementById('wz-s1-next').disabled = false;
+}
+
+function wzRenderStep2() {
+  const ins = allContacts.filter(c => c.Contact_Type === 'บริษัทประกันภัย');
+  const vend = allContacts.filter(c => c.Contact_Type === 'ร้านค้า');
+  const cust = allContacts.filter(c => c.Contact_Type === 'ลูกค้า');
+  let bankOpts = '<option value="1010">💵 เงินสด</option>';
+  allBanks.forEach(b => { bankOpts += `<option value="${b.Account_Code}">🏦 ${b.Bank_Name} ${b.Account_No}</option>`; });
+  let catOpts = '<option value="">— เลือกหมวดหมู่ —</option>';
+  const mains = allCategories.filter(c => c.Category_Type === 'Main');
+  mains.forEach(m => {
+    catOpts += `<optgroup label="${m.Category_Name}">`;
+    allCategories.filter(c => c.Parent_ID === m.Category_ID && c.Category_Type === 'Sub').forEach(s => {
+      catOpts += `<option value="${s.Category_ID}" data-code="${s.Account_Code}" data-name="${s.Category_Name}">${s.Category_Name}</option>`;
+    });
+    catOpts += '</optgroup>';
+  });
+  const todayStr = new Date().toISOString().split('T')[0];
+  let html = '';
+
+  if (wzType === 'invoice_insurance') {
+    let insOpts = '<option value="">— เลือกบริษัทประกันภัย —</option>';
+    ins.forEach(c => { insOpts += `<option value="${c.Contact_ID}" data-name="${c.Contact_Name}">${c.Contact_Name}</option>`; });
+    html = `<div><label class="block text-sm font-medium mb-1">บริษัทประกันภัย</label><select id="wz-contact" class="w-full border border-gray-300 rounded-lg px-3 py-2">${insOpts}</select></div>
+      <div class="grid grid-cols-2 gap-4"><div><label class="block text-sm font-medium mb-1">เลขที่ใบแจ้งหนี้</label><input type="text" id="wz-docno" class="w-full border border-gray-300 rounded-lg px-3 py-2" placeholder="INV001"></div>
+      <div><label class="block text-sm font-medium mb-1">วันที่ออกบิล</label><input type="date" id="wz-date" class="w-full border border-gray-300 rounded-lg px-3 py-2" value="${todayStr}"></div></div>
+      <div><label class="block text-sm font-medium mb-1">วันที่ครบกำหนดชำระ</label><input type="date" id="wz-due" class="w-full border border-gray-300 rounded-lg px-3 py-2"></div>
+      <div><label class="block text-sm font-medium mb-1">คำอธิบาย</label><input type="text" id="wz-desc" class="w-full border border-gray-300 rounded-lg px-3 py-2" placeholder="ค่าซ่อม..."></div>`;
+  } else if (wzType === 'receipt_walkin') {
+    html = `<div><label class="block text-sm font-medium mb-1">ชื่อลูกค้า</label><input type="text" id="wz-contact-name" class="w-full border border-gray-300 rounded-lg px-3 py-2" placeholder="ชื่อลูกค้า"></div>
+      <div class="grid grid-cols-2 gap-4"><div><label class="block text-sm font-medium mb-1">เลขที่ใบเสร็จ</label><input type="text" id="wz-docno" class="w-full border border-gray-300 rounded-lg px-3 py-2" placeholder="REC001"></div>
+      <div><label class="block text-sm font-medium mb-1">วันที่</label><input type="date" id="wz-date" class="w-full border border-gray-300 rounded-lg px-3 py-2" value="${todayStr}"></div></div>
+      <div><label class="block text-sm font-medium mb-1">เข้าบัญชี</label><select id="wz-bank" class="w-full border border-gray-300 rounded-lg px-3 py-2">${bankOpts}</select></div>
+      <div><label class="block text-sm font-medium mb-1">คำอธิบาย</label><input type="text" id="wz-desc" class="w-full border border-gray-300 rounded-lg px-3 py-2"></div>`;
+  } else if (wzType === 'receipt_excess') {
+    html = `<div><label class="block text-sm font-medium mb-1">ชื่อลูกค้า</label><input type="text" id="wz-contact-name" class="w-full border border-gray-300 rounded-lg px-3 py-2"></div>
+      <div class="grid grid-cols-2 gap-4"><div><label class="block text-sm font-medium mb-1">เลขที่</label><input type="text" id="wz-docno" class="w-full border border-gray-300 rounded-lg px-3 py-2" placeholder="EXC001"></div>
+      <div><label class="block text-sm font-medium mb-1">วันที่</label><input type="date" id="wz-date" class="w-full border border-gray-300 rounded-lg px-3 py-2" value="${todayStr}"></div></div>
+      <div><label class="block text-sm font-medium mb-1">ประเภท</label><select id="wz-excess-type" class="w-full border border-gray-300 rounded-lg px-3 py-2"><option value="labor_additional">ค่าแรงเพิ่มเติม</option><option value="parts_additional">ค่าอะไหล่เพิ่มเติม</option><option value="excess">ค่า Excess (ส่วนเกิน/ส่วนแรก)</option></select></div>
+      <div><label class="block text-sm font-medium mb-1">เชื่อมโยงกับเคลม (Optional)</label><select id="wz-linked" class="w-full border border-gray-300 rounded-lg px-3 py-2"><option value="">— ไม่ระบุ —</option>${allTxns.filter(t=>t.Transaction_Type==='invoice_insurance').map(t=>`<option value="${t.Transaction_ID}">${t.Document_No||t.Transaction_ID} - ${t.Contact_Name||''}</option>`).join('')}</select></div>
+      <div><label class="block text-sm font-medium mb-1">เข้าบัญชี</label><select id="wz-bank" class="w-full border border-gray-300 rounded-lg px-3 py-2">${bankOpts}</select></div>
+      <div><label class="block text-sm font-medium mb-1">คำอธิบาย</label><input type="text" id="wz-desc" class="w-full border border-gray-300 rounded-lg px-3 py-2"></div>`;
+  } else if (wzType === 'bill_payable') {
+    let vendOpts = '<option value="">— เลือกร้าน —</option>';
+    vend.forEach(c => { vendOpts += `<option value="${c.Contact_ID}" data-name="${c.Contact_Name}">${c.Contact_Name}</option>`; });
+    html = `<div><label class="block text-sm font-medium mb-1">เจ้าหนี้</label><select id="wz-contact" class="w-full border border-gray-300 rounded-lg px-3 py-2">${vendOpts}</select></div>
+      <div class="grid grid-cols-2 gap-4"><div><label class="block text-sm font-medium mb-1">เลขที่บิล</label><input type="text" id="wz-docno" class="w-full border border-gray-300 rounded-lg px-3 py-2" placeholder="BIL001"></div>
+      <div><label class="block text-sm font-medium mb-1">วันที่รับบิล</label><input type="date" id="wz-date" class="w-full border border-gray-300 rounded-lg px-3 py-2" value="${todayStr}"></div></div>
+      <div><label class="block text-sm font-medium mb-1">ครบกำหนดจ่าย</label><input type="date" id="wz-due" class="w-full border border-gray-300 rounded-lg px-3 py-2"></div>
+      <div><label class="block text-sm font-medium mb-1">หมวดหมู่ค่าใช้จ่าย</label><select id="wz-category" class="w-full border border-gray-300 rounded-lg px-3 py-2">${catOpts}</select></div>
+      <div><label class="block text-sm font-medium mb-1">คำอธิบาย</label><input type="text" id="wz-desc" class="w-full border border-gray-300 rounded-lg px-3 py-2"></div>`;
+  } else if (wzType === 'payment_parts') {
+    let vendOpts2 = '<option value="">— เลือกร้าน —</option>';
+    vend.forEach(c => { vendOpts2 += `<option value="${c.Contact_ID}" data-name="${c.Contact_Name}">${c.Contact_Name}</option>`; });
+    html = `<div><label class="block text-sm font-medium mb-1">ร้านค้า</label><select id="wz-contact" class="w-full border border-gray-300 rounded-lg px-3 py-2">${vendOpts2}</select></div>
+      <div class="grid grid-cols-2 gap-4"><div><label class="block text-sm font-medium mb-1">เลขที่</label><input type="text" id="wz-docno" class="w-full border border-gray-300 rounded-lg px-3 py-2" placeholder="PO001"></div>
+      <div><label class="block text-sm font-medium mb-1">วันที่</label><input type="date" id="wz-date" class="w-full border border-gray-300 rounded-lg px-3 py-2" value="${todayStr}"></div></div>
+      <div><label class="block text-sm font-medium mb-1">จ่ายจากบัญชี</label><select id="wz-bank" class="w-full border border-gray-300 rounded-lg px-3 py-2">${bankOpts}</select></div>
+      <div><label class="block text-sm font-medium mb-1">คำอธิบาย</label><input type="text" id="wz-desc" class="w-full border border-gray-300 rounded-lg px-3 py-2"></div>`;
+  } else if (wzType === 'payment_salary') {
+    html = `<div><label class="block text-sm font-medium mb-1">พนักงาน / กลุ่ม</label><input type="text" id="wz-contact-name" class="w-full border border-gray-300 rounded-lg px-3 py-2" placeholder="ชื่อ หรือ ทั้งหมด"></div>
+      <div class="grid grid-cols-2 gap-4"><div><label class="block text-sm font-medium mb-1">เลขที่</label><input type="text" id="wz-docno" class="w-full border border-gray-300 rounded-lg px-3 py-2" placeholder="SAL001"></div>
+      <div><label class="block text-sm font-medium mb-1">วันที่</label><input type="date" id="wz-date" class="w-full border border-gray-300 rounded-lg px-3 py-2" value="${todayStr}"></div></div>
+      <div><label class="block text-sm font-medium mb-1">จ่ายจากบัญชี</label><select id="wz-bank" class="w-full border border-gray-300 rounded-lg px-3 py-2">${bankOpts}</select></div>
+      <div><label class="block text-sm font-medium mb-1">คำอธิบาย</label><input type="text" id="wz-desc" class="w-full border border-gray-300 rounded-lg px-3 py-2" placeholder="เงินเดือน พ.ค. 2568"></div>`;
+  } else if (wzType === 'payment_expense') {
+    html = `<div><label class="block text-sm font-medium mb-1">ผู้รับเงิน</label><input type="text" id="wz-contact-name" class="w-full border border-gray-300 rounded-lg px-3 py-2"></div>
+      <div class="grid grid-cols-2 gap-4"><div><label class="block text-sm font-medium mb-1">เลขที่</label><input type="text" id="wz-docno" class="w-full border border-gray-300 rounded-lg px-3 py-2" placeholder="EXP001"></div>
+      <div><label class="block text-sm font-medium mb-1">วันที่</label><input type="date" id="wz-date" class="w-full border border-gray-300 rounded-lg px-3 py-2" value="${todayStr}"></div></div>
+      <div><label class="block text-sm font-medium mb-1">หมวดหมู่ค่าใช้จ่าย</label><select id="wz-category" class="w-full border border-gray-300 rounded-lg px-3 py-2">${catOpts}</select></div>
+      <div><label class="block text-sm font-medium mb-1">จ่ายจากบัญชี</label><select id="wz-bank" class="w-full border border-gray-300 rounded-lg px-3 py-2">${bankOpts}</select></div>
+      <div><label class="block text-sm font-medium mb-1">คำอธิบาย</label><input type="text" id="wz-desc" class="w-full border border-gray-300 rounded-lg px-3 py-2"></div>`;
+  }
+  document.getElementById('wz-step2-fields').innerHTML = html;
+}
+
+function wzRenderStep3() {
+  const isIncome = wzMode === 'income';
+  let html = '';
+  if (isIncome) {
+    const isExcess = wzType === 'receipt_excess';
+    html = `<div class="grid grid-cols-2 gap-4 mb-4"><div><label class="block text-sm font-medium mb-1">ค่าแรง / ค่าบริการ (฿)</label><div class="relative"><span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">฿</span><input type="number" id="wz-labor" class="w-full border border-gray-300 rounded-lg pl-8 pr-3 py-2" placeholder="0" oninput="wzCalc()"></div></div>
+      <div><label class="block text-sm font-medium mb-1">ค่าอะไหล่ (฿)</label><div class="relative"><span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">฿</span><input type="number" id="wz-parts" class="w-full border border-gray-300 rounded-lg pl-8 pr-3 py-2" placeholder="0" oninput="wzCalc()"></div></div></div>`;
+    if (isExcess) {
+      html += `<div class="mb-4"><label class="block text-sm font-medium mb-1">ค่า Excess (฿)</label><div class="relative"><span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">฿</span><input type="number" id="wz-excess" class="w-full border border-gray-300 rounded-lg pl-8 pr-3 py-2" placeholder="0" oninput="wzCalc()"></div></div>`;
+    }
+    const vatTogClass = wzType === 'invoice_insurance' ? 'bg-green-500' : 'bg-gray-300';
+    const vatThumbLeft = wzType === 'invoice_insurance' ? '26px' : '2px';
+    html += `<div class="bg-gray-50 rounded-lg p-4 space-y-3"><div class="flex items-center justify-between"><div><div class="font-medium text-sm">มี VAT 7%</div></div><div class="w-12 h-7 rounded-full cursor-pointer relative transition ${vatTogClass}" id="wz-vat-tog" onclick="this.classList.toggle('bg-green-500');this.classList.toggle('bg-gray-300');wzCalc()"><div class="w-5 h-5 bg-white rounded-full absolute top-1 transition-all" style="left:${vatThumbLeft}"></div></div></div>
+      <div class="flex items-center justify-between"><div><div class="font-medium text-sm">ถูกหัก WHT 3%</div></div><div class="w-12 h-7 rounded-full cursor-pointer relative bg-gray-300 transition" id="wz-wht-tog" onclick="this.classList.toggle('bg-green-500');this.classList.toggle('bg-gray-300');wzCalc()"><div class="w-5 h-5 bg-white rounded-full absolute top-1 left-0.5"></div></div></div></div>
+      <div class="bg-gray-50 rounded-xl p-4 mt-4" id="wz-calc-summary"></div>`;
+  } else {
+    html = `<div class="mb-4"><label class="block text-sm font-medium mb-1">จำนวนเงิน (฿)</label><div class="relative"><span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">฿</span><input type="number" id="wz-amount" class="w-full border border-gray-300 rounded-lg pl-8 pr-3 py-2 text-lg" placeholder="0" oninput="wzCalc()"></div></div>
+      <div class="bg-gray-50 rounded-lg p-4"><div class="flex items-center justify-between"><div><div class="font-medium text-sm">ราคานี้รวม VAT แล้ว</div></div><div class="w-12 h-7 rounded-full cursor-pointer relative bg-gray-300 transition" id="wz-vatinc-tog" onclick="this.classList.toggle('bg-green-500');this.classList.toggle('bg-gray-300');wzCalc()"><div class="w-5 h-5 bg-white rounded-full absolute top-1 left-0.5"></div></div></div></div>
+      <div class="bg-gray-50 rounded-xl p-4 mt-4" id="wz-calc-summary"></div>`;
+  }
+  document.getElementById('wz-step3-fields').innerHTML = html;
+  wzCalc();
+}
+
+function wzCalc() {
+  const isIncome = wzMode === 'income';
+  let html = '';
+  if (isIncome) {
+    const labor = parseFloat(document.getElementById('wz-labor')?.value) || 0;
+    const parts = parseFloat(document.getElementById('wz-parts')?.value) || 0;
+    const excessAmt = parseFloat(document.getElementById('wz-excess')?.value) || 0;
+    const hasVAT = document.getElementById('wz-vat-tog')?.classList.contains('bg-green-500');
+    const hasWHT = document.getElementById('wz-wht-tog')?.classList.contains('bg-green-500');
+    const base = labor + parts + excessAmt;
+    const vat = hasVAT ? base * 0.07 : 0;
+    const wht = hasWHT ? base * 0.03 : 0;
+    const total = base + vat;
+    const net = total - wht;
+    html = `<div class="detail-row"><span class="detail-label">ค่าแรง</span><span class="detail-value">${fmt(labor)}</span></div>
+      <div class="detail-row"><span class="detail-label">ค่าอะไหล่</span><span class="detail-value">${fmt(parts)}</span></div>`;
+    if (excessAmt > 0) html += `<div class="detail-row"><span class="detail-label">ค่า Excess</span><span class="detail-value">${fmt(excessAmt)}</span></div>`;
+    html += `<div class="detail-row"><span class="detail-label">รวม</span><span class="detail-value">${fmt(base)}</span></div>`;
+    if (hasVAT) html += `<div class="detail-row"><span class="detail-label text-blue-600">+ VAT 7%</span><span class="detail-value text-blue-600">${fmt(vat)}</span></div>
+      <div class="detail-row"><span class="detail-label">รวมทั้งสิ้น</span><span class="detail-value">${fmt(total)}</span></div>`;
+    if (hasWHT) html += `<div class="detail-row"><span class="detail-label text-red-500">− WHT 3%</span><span class="detail-value text-red-500">−${fmt(wht)}</span></div>`;
+    html += `<div class="detail-row" style="border-top:2px solid #333;padding-top:10px;margin-top:4px"><span class="detail-label font-bold text-base">ได้รับจริง</span><span class="detail-value text-lg font-bold text-green-600">${fmt(net)}</span></div>`;
+  } else {
+    const amount = parseFloat(document.getElementById('wz-amount')?.value) || 0;
+    const inclVAT = document.getElementById('wz-vatinc-tog')?.classList.contains('bg-green-500');
+    if (inclVAT) {
+      const base = amount / 1.07;
+      const vat = amount - base;
+      html = `<div class="detail-row"><span class="detail-label">มูลค่าสินค้า</span><span class="detail-value">${fmt(base)}</span></div>
+        <div class="detail-row"><span class="detail-label text-blue-600">+ VAT 7%</span><span class="detail-value text-blue-600">${fmt(vat)}</span></div>
+        <div class="detail-row" style="border-top:2px solid #333;padding-top:10px"><span class="detail-label font-bold">รวมทั้งสิ้น</span><span class="detail-value font-bold text-red-600">${fmt(amount)}</span></div>`;
+    } else {
+      html = `<div class="detail-row" style="border-top:2px solid #333;padding-top:10px"><span class="detail-label font-bold">รวมทั้งสิ้น</span><span class="detail-value font-bold text-red-600">${fmt(amount)}</span></div>`;
+    }
+  }
+  const el = document.getElementById('wz-calc-summary');
+  if (el) el.innerHTML = html;
+}
+
+function wzRenderStep4() {
+  const isIncome = wzMode === 'income';
+  const contactEl = document.getElementById('wz-contact');
+  const contactNameEl = document.getElementById('wz-contact-name');
+  const contactName = contactEl ? (contactEl.options[contactEl.selectedIndex]?.dataset?.name || contactEl.options[contactEl.selectedIndex]?.text || '') : (contactNameEl?.value || '');
+  const docNo = document.getElementById('wz-docno')?.value || '';
+  const date = document.getElementById('wz-date')?.value || '';
+  const desc = document.getElementById('wz-desc')?.value || '';
+  let lines = `<div><strong>ประเภท:</strong> ${wzType}</div><div><strong>ผู้ติดต่อ:</strong> ${contactName}</div><div><strong>เลขที่:</strong> ${docNo}</div><div><strong>วันที่:</strong> ${fmtDate(date)}</div>`;
+  if (desc) lines += `<div><strong>คำอธิบาย:</strong> ${desc}</div>`;
+  if (isIncome) {
+    lines += `<div><strong>ค่าแรง:</strong> ${fmt(parseFloat(document.getElementById('wz-labor')?.value)||0)}</div>`;
+    lines += `<div><strong>ค่าอะไหล่:</strong> ${fmt(parseFloat(document.getElementById('wz-parts')?.value)||0)}</div>`;
+  } else {
+    lines += `<div><strong>จำนวนเงิน:</strong> ${fmt(parseFloat(document.getElementById('wz-amount')?.value)||0)}</div>`;
+  }
+  document.getElementById('wz-summary').innerHTML = lines;
+}
+
+async function wzSubmit() {
+  const contactEl = document.getElementById('wz-contact');
+  const contactNameEl = document.getElementById('wz-contact-name');
+  const contactID = contactEl?.value || '';
+  const contactName = contactEl ? (contactEl.options[contactEl.selectedIndex]?.dataset?.name || contactEl.options[contactEl.selectedIndex]?.text || '') : (contactNameEl?.value || '');
+  const bankEl = document.getElementById('wz-bank');
+  const catEl = document.getElementById('wz-category');
+  const payload = {
+    transactionType: wzType,
+    documentNo: document.getElementById('wz-docno')?.value || '',
+    transactionDate: document.getElementById('wz-date')?.value || '',
+    contactID: contactID,
+    contactName: contactName,
+    description: document.getElementById('wz-desc')?.value || '',
+    dueDate: document.getElementById('wz-due')?.value || '',
+    bankAccountCode: bankEl?.value || '1000',
+    bankAccount: bankEl ? bankEl.options[bankEl.selectedIndex]?.text || '' : '',
+    laborAmount: document.getElementById('wz-labor')?.value || '0',
+    partsAmount: document.getElementById('wz-parts')?.value || '0',
+    excessAmount: document.getElementById('wz-excess')?.value || '0',
+    amount: document.getElementById('wz-amount')?.value || '0',
+    hasVAT: document.getElementById('wz-vat-tog')?.classList.contains('bg-green-500') || false,
+    hasWHT: document.getElementById('wz-wht-tog')?.classList.contains('bg-green-500') || false,
+    vatIncluded: document.getElementById('wz-vatinc-tog')?.classList.contains('bg-green-500') || false,
+    excessType: document.getElementById('wz-excess-type')?.value || '',
+    linkedTransaction: document.getElementById('wz-linked')?.value || '',
+    categoryID: catEl?.value || '',
+    categoryAccountCode: catEl?.options[catEl?.selectedIndex]?.dataset?.code || '',
+    categoryAccountName: catEl?.options[catEl?.selectedIndex]?.dataset?.name || ''
+  };
+  const res = await apiCall('saveTransaction', payload);
+  if (res && res.success) {
+    document.getElementById('wz-success-id').textContent = 'หมายเลขรายการ: ' + res.transactionID;
+    wzGoStep(5);
+    loadData();
+  }
+}
+
+// ═══════════════════ SETTINGS (TAB 6) ═══════════════════
+
+function switchSettings(panel) {
+  document.querySelectorAll('.sp-panel').forEach(p => p.style.display = 'none');
+  document.getElementById('sp-' + panel).style.display = 'block';
+  document.querySelectorAll('[id^="snav-"]').forEach(n => { n.className = 'px-4 py-3 rounded-xl cursor-pointer font-medium text-sm hover:bg-gray-100'; });
+  document.getElementById('snav-' + panel).className = 'px-4 py-3 rounded-xl cursor-pointer font-medium text-sm bg-blue-500 text-white';
+  if (panel === 'cats') renderCatTree();
+  if (panel === 'contacts') renderContactsTable();
+  if (panel === 'banks') renderBanksTable();
+  if (panel === 'company') loadCompanyConfig();
+}
+
+// ─── Categories ───
+let editingCatID = null;
+function renderCatTree() {
+  const mains = allCategories.filter(c => c.Category_Type === 'Main').sort((a,b) => (a.Display_Order||99) - (b.Display_Order||99));
+  let html = '';
+  mains.forEach(m => {
+    const subs = allCategories.filter(c => c.Parent_ID === m.Category_ID && c.Category_Type === 'Sub').sort((a,b) => (a.Display_Order||99) - (b.Display_Order||99));
+    const id = 'ct-' + m.Category_ID;
+    html += `<div class="tree-main" onclick="toggleTree('${id}')" style="border-left:4px solid ${m.Display_Color||'#6B7280'}">
+      <div><span class="mr-2" id="${id}-arrow">▶</span>${m.Category_Name} <span class="text-xs text-gray-400 ml-2">${m.Account_Code||''}</span></div>
+      <div class="flex gap-1" onclick="event.stopPropagation()"><button class="btn-outline text-xs py-1 px-2" onclick="editCat('${m.Category_ID}')">แก้ไข</button><button class="btn-danger text-xs py-1 px-2" onclick="deleteCat('${m.Category_ID}')">ลบ</button></div></div>`;
+    html += `<div class="tree-children" id="${id}">`;
+    subs.forEach(s => {
+      html += `<div class="tree-sub"><div><span class="text-sm">${s.Category_Name}</span><span class="text-xs text-gray-400 ml-2">${s.Account_Code||''}</span></div>
+        <div class="flex gap-1"><button class="btn-outline text-xs py-1 px-2" onclick="editCat('${s.Category_ID}')">แก้ไข</button><button class="btn-danger text-xs py-1 px-2" onclick="deleteCat('${s.Category_ID}')">ลบ</button></div></div>`;
+    });
+    html += '</div>';
+  });
+  document.getElementById('cat-tree-view').innerHTML = html || '<p class="text-gray-400 text-sm">ยังไม่มีหมวดหมู่</p>';
+}
+
+function openCatModal(type) {
+  editingCatID = null;
+  document.getElementById('modal-cat-title').textContent = type === 'Main' ? 'เพิ่มหมวดหมู่หลัก' : 'เพิ่มหมวดหมู่ย่อย';
+  document.getElementById('cat-name').value = '';
+  document.getElementById('cat-code').value = '';
+  document.getElementById('cat-color').value = '#3B82F6';
+  document.getElementById('cat-color-preview').style.background = '#3B82F6';
+  document.getElementById('cat-active').checked = true;
+  if (type === 'Main') { document.getElementById('cat-type-main').checked = true; document.getElementById('cat-parent-wrap').style.display = 'none'; }
+  else { document.getElementById('cat-type-sub').checked = true; document.getElementById('cat-parent-wrap').style.display = 'block'; }
+  let opts = '<option value="">— เลือกหมวดแม่ —</option>';
+  allCategories.filter(c => c.Category_Type === 'Main').forEach(m => { opts += `<option value="${m.Category_ID}">${m.Category_Name}</option>`; });
+  document.getElementById('cat-parent').innerHTML = opts;
+  openModal('modal-cat');
+}
+
+function editCat(catID) {
+  const cat = allCategories.find(c => c.Category_ID === catID);
+  if (!cat) return;
+  editingCatID = catID;
+  document.getElementById('modal-cat-title').textContent = 'แก้ไขหมวดหมู่';
+  document.getElementById('cat-name').value = cat.Category_Name || '';
+  document.getElementById('cat-code').value = cat.Account_Code || '';
+  document.getElementById('cat-color').value = cat.Display_Color || '#3B82F6';
+  document.getElementById('cat-color-preview').style.background = cat.Display_Color || '#3B82F6';
+  document.getElementById('cat-active').checked = cat.Is_Active !== false;
+  if (cat.Category_Type === 'Main') { document.getElementById('cat-type-main').checked = true; document.getElementById('cat-parent-wrap').style.display = 'none'; }
+  else { document.getElementById('cat-type-sub').checked = true; document.getElementById('cat-parent-wrap').style.display = 'block'; }
+  let opts = '<option value="">— เลือกหมวดแม่ —</option>';
+  allCategories.filter(c => c.Category_Type === 'Main').forEach(m => { opts += `<option value="${m.Category_ID}" ${m.Category_ID===cat.Parent_ID?'selected':''}>${m.Category_Name}</option>`; });
+  document.getElementById('cat-parent').innerHTML = opts;
+  openModal('modal-cat');
+}
+
+async function saveCat() {
+  const data = {
+    categoryName: document.getElementById('cat-name').value,
+    categoryType: document.getElementById('cat-type-main').checked ? 'Main' : 'Sub',
+    parentID: document.getElementById('cat-parent').value || '',
+    accountCode: document.getElementById('cat-code').value,
+    displayColor: document.getElementById('cat-color').value,
+    isActive: document.getElementById('cat-active').checked
+  };
+  if (!data.categoryName) { toast('⚠️ กรุณากรอกชื่อ', '#FF9500'); return; }
+  let res;
+  if (editingCatID) { res = await apiCall('updateCategory', { categoryID: editingCatID, ...data }); }
+  else { res = await apiCall('saveCategory', data); }
+  closeModal('modal-cat');
+  if (res && res.success) { toast('✅ ' + res.message, '#34C759'); loadData(); }
+}
+
+async function deleteCat(catID) {
+  if (!confirm('ต้องการลบหมวดหมู่นี้?')) return;
+  const res = await apiCall('deleteCategory', { categoryID: catID });
+  if (res && res.success) { toast('✅ ' + res.message, '#34C759'); loadData(); }
+}
+
+// ─── Contacts ───
+let editingContactID = null;
+function renderContactsTable() {
+  let html = '';
+  allContacts.forEach(c => {
+    const typeBadge = c.Contact_Type === 'บริษัทประกันภัย' ? 'badge-blue' : c.Contact_Type === 'ร้านค้า' ? 'badge-yellow' : 'badge-green';
+    html += `<tr class="border-t"><td class="p-3 font-medium">${c.Contact_Name}</td><td class="p-3"><span class="badge ${typeBadge}">${c.Contact_Type}</span></td>
+      <td class="p-3 font-mono text-xs">${c.Tax_ID||'-'}</td><td class="p-3">${c.Phone||'-'}</td>
+      <td class="p-3 text-right"><button class="btn-outline text-xs py-1 px-2 mr-1" onclick="editContact('${c.Contact_ID}')">แก้ไข</button><button class="btn-danger text-xs py-1 px-2" onclick="deleteContactBtn('${c.Contact_ID}')">ลบ</button></td></tr>`;
+  });
+  if (!allContacts.length) html = '<tr><td colspan="5" class="p-6 text-center text-gray-400">ยังไม่มีข้อมูล</td></tr>';
+  document.getElementById('contacts-tbody').innerHTML = html;
+}
+
+function openContactModal() {
+  editingContactID = null;
+  document.getElementById('modal-contact-title').textContent = 'เพิ่มผู้ติดต่อ';
+  document.getElementById('ct-type').value = 'บริษัทประกันภัย';
+  document.getElementById('ct-name').value = '';
+  document.getElementById('ct-taxid').value = '';
+  document.getElementById('ct-address').value = '';
+  document.getElementById('ct-phone').value = '';
+  document.getElementById('ct-email').value = '';
+  document.getElementById('ct-credit').value = '0';
+  openModal('modal-contact');
+}
+
+function editContact(cid) {
+  const c = allContacts.find(x => x.Contact_ID === cid);
+  if (!c) return;
+  editingContactID = cid;
+  document.getElementById('modal-contact-title').textContent = 'แก้ไขผู้ติดต่อ';
+  document.getElementById('ct-type').value = c.Contact_Type || '';
+  document.getElementById('ct-name').value = c.Contact_Name || '';
+  document.getElementById('ct-taxid').value = c.Tax_ID || '';
+  document.getElementById('ct-address').value = c.Address || '';
+  document.getElementById('ct-phone').value = c.Phone || '';
+  document.getElementById('ct-email').value = c.Email || '';
+  document.getElementById('ct-credit').value = c.Credit_Limit || 0;
+  openModal('modal-contact');
+}
+
+async function saveContactForm() {
+  const data = {
+    contactID: editingContactID || '',
+    contactType: document.getElementById('ct-type').value,
+    contactName: document.getElementById('ct-name').value,
+    taxID: document.getElementById('ct-taxid').value,
+    address: document.getElementById('ct-address').value,
+    phone: document.getElementById('ct-phone').value,
+    email: document.getElementById('ct-email').value,
+    creditLimit: document.getElementById('ct-credit').value
+  };
+  if (!data.contactName) { toast('⚠️ กรุณากรอกชื่อ', '#FF9500'); return; }
+  const res = await apiCall('saveContact', data);
+  closeModal('modal-contact');
+  if (res && res.success) { toast('✅ ' + res.message, '#34C759'); loadData(); }
+}
+
+async function deleteContactBtn(cid) {
+  if (!confirm('ต้องการลบผู้ติดต่อนี้?')) return;
+  const res = await apiCall('deleteContact', { contactID: cid });
+  if (res && res.success) { toast('✅ ' + res.message, '#34C759'); loadData(); }
+}
+
+// ─── Banks ───
+let editingBankID = null;
+function renderBanksTable() {
+  let html = '';
+  allBanks.forEach(b => {
+    html += `<tr class="border-t"><td class="p-3 font-medium">${b.Bank_Name}</td><td class="p-3 font-mono text-xs">${b.Account_No}</td>
+      <td class="p-3">${b.Account_Name||'-'}</td><td class="p-3">${b.Branch||'-'}</td>
+      <td class="p-3 text-center">${b.Show_On_Invoice ? '<span class="badge badge-green">แสดง</span>' : '<span class="badge badge-gray">ซ่อน</span>'}</td>
+      <td class="p-3 text-right"><button class="btn-outline text-xs py-1 px-2 mr-1" onclick="editBank('${b.Bank_ID}')">แก้ไข</button><button class="btn-danger text-xs py-1 px-2" onclick="deleteBankBtn('${b.Bank_ID}')">ลบ</button></td></tr>`;
+  });
+  if (!allBanks.length) html = '<tr><td colspan="6" class="p-6 text-center text-gray-400">ยังไม่มีข้อมูล</td></tr>';
+  document.getElementById('banks-tbody').innerHTML = html;
+}
+
+function openBankModal() {
+  editingBankID = null;
+  document.getElementById('modal-bank-title').textContent = 'เพิ่มบัญชีธนาคาร';
+  document.getElementById('bk-name').value = 'เงินสด';
+  document.getElementById('bk-accno').value = '';
+  document.getElementById('bk-accname').value = '';
+  document.getElementById('bk-branch').value = '';
+  document.getElementById('bk-type').value = 'เงินสด';
+  document.getElementById('bk-code').value = '1010';
+  document.getElementById('bk-opening').value = '0';
+  document.getElementById('bk-opening-date').value = new Date().toISOString().split('T')[0];
+  document.getElementById('bk-od-limit').value = '0';
+  document.getElementById('bk-od-used').value = '0';
+  document.getElementById('bk-invoice').checked = true;
+  openModal('modal-bank');
+}
+
+function editBank(bid) {
+  const b = allBanks.find(x => x.Bank_ID === bid);
+  if (!b) return;
+  editingBankID = bid;
+  document.getElementById('modal-bank-title').textContent = 'แก้ไขบัญชีธนาคาร';
+  document.getElementById('bk-name').value = b.Bank_Name || '';
+  document.getElementById('bk-accno').value = b.Account_No || '';
+  document.getElementById('bk-accname').value = b.Account_Name || '';
+  document.getElementById('bk-branch').value = b.Branch || '';
+  document.getElementById('bk-type').value = b.Account_Type || 'ออมทรัพย์';
+  document.getElementById('bk-code').value = b.Account_Code || '1000';
+  document.getElementById('bk-opening').value = b.Opening_Balance || 0;
+  document.getElementById('bk-opening-date').value = b.Opening_Date ? new Date(b.Opening_Date).toISOString().split('T')[0] : '';
+  document.getElementById('bk-od-limit').value = b.OD_Limit || 0;
+  document.getElementById('bk-od-used').value = b.OD_Opening_Used || 0;
+  document.getElementById('bk-invoice').checked = b.Show_On_Invoice !== false;
+  openModal('modal-bank');
+}
+
+async function saveBankForm() {
+  const data = {
+    bankID: editingBankID || '',
+    bankName: document.getElementById('bk-name').value,
+    accountNo: document.getElementById('bk-accno').value,
+    accountName: document.getElementById('bk-accname').value,
+    branch: document.getElementById('bk-branch').value,
+    accountType: document.getElementById('bk-type').value,
+    accountCode: document.getElementById('bk-code').value,
+    openingBalance: document.getElementById('bk-opening').value,
+    openingDate: document.getElementById('bk-opening-date').value,
+    odLimit: document.getElementById('bk-od-limit').value,
+    odOpeningUsed: document.getElementById('bk-od-used').value,
+    showOnInvoice: document.getElementById('bk-invoice').checked
+  };
+  const res = await apiCall('saveBankAccount', data);
+  closeModal('modal-bank');
+  if (res && res.success) { toast('✅ ' + res.message, '#34C759'); loadData(); }
+}
+
+async function deleteBankBtn(bid) {
+  if (!confirm('ต้องการลบบัญชีนี้?')) return;
+  const res = await apiCall('deleteBankAccount', { bankID: bid });
+  if (res && res.success) { toast('✅ ' + res.message, '#34C759'); loadData(); }
+}
+
+// ─── Company Config ───
+function loadCompanyConfig() {
+  const cfg = allTxns.length ? {} : {};
+  document.getElementById('cfg-company').value = localStorage.getItem('cfg_company') || '';
+  document.getElementById('cfg-taxid').value = localStorage.getItem('cfg_taxid') || '';
+}
+
+async function saveCompanyConfig() {
+  const data = {
+    COMPANY_NAME: document.getElementById('cfg-company').value,
+    TAX_ID: document.getElementById('cfg-taxid').value,
+    VAT_RATE: (parseFloat(document.getElementById('cfg-vat').value) || 7) / 100,
+    WHT_RATE_LABOR: (parseFloat(document.getElementById('cfg-wht').value) || 3) / 100,
+    OD_LIMIT: document.getElementById('cfg-od').value,
+    FISCAL_YEAR: document.getElementById('cfg-year').value
+  };
+  localStorage.setItem('cfg_company', data.COMPANY_NAME);
+  localStorage.setItem('cfg_taxid', data.TAX_ID);
+  const res = await apiCall('saveConfig', data);
+  if (res && res.success) toast('✅ บันทึกข้อมูลบริษัทเรียบร้อย', '#34C759');
+}
+
+// ─── UI Settings ───
+function saveUISettings() {
+  const settings = {
+    primaryColor: document.getElementById('ui-primary').value,
+    secondaryColor: document.getElementById('ui-secondary').value,
+    logoUrl: document.getElementById('ui-logo').value,
+    features: {
+      discount: document.getElementById('ft-discount').classList.contains('bg-green-500'),
+      cost: document.getElementById('ft-cost').classList.contains('bg-green-500'),
+      vat: document.getElementById('ft-vat').classList.contains('bg-green-500'),
+      wht: document.getElementById('ft-wht').classList.contains('bg-green-500'),
+      reports: document.getElementById('ft-reports').classList.contains('bg-green-500'),
+      notifications: document.getElementById('ft-notif').classList.contains('bg-green-500')
+    }
+  };
+  localStorage.setItem('ui_settings', JSON.stringify(settings));
+  toast('✅ บันทึกการตั้งค่า UI เรียบร้อย', '#34C759');
+}
+
+</script>
+</body>
+</html>
